@@ -6,7 +6,7 @@ const username = "<insert here>";
 const password = "<password>";
 const adminUrl = "<kong-admin-url-with-http>";
 
-async function program() {
+async function backupProgram() {
     const kong = kongApi(username, password, adminUrl);
     const apis = await kong.allEnrichedApis();
     const plugins = await kong.allPlugins();
@@ -15,4 +15,4 @@ async function program() {
     fs.writeFileSync("example.json", JSON.stringify(results, null, 4));
 }
 
-program();
+backupProgram();
