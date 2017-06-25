@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const request = require('request-promise-native');
-const {prop, merge, mergeDeepLeft, compose, identity, assoc, filter} = require('ramda');
+const {prop, merge, mergeDeepLeft, compose, assoc} = require('ramda');
 
 module.exports = function kong(username, password, adminUrl) {
     const authentication = "Basic " + new Buffer(username + ":" + password).toString("base64");
@@ -10,11 +10,6 @@ module.exports = function kong(username, password, adminUrl) {
         headers: {"Authorization": authentication},
         json: true
     };
-
-    function standardKongResponseSemigroup(responseA, responseB) {
-        const combinedData = responseA.data.concat(responseB.data);
-        return merge(responseB, {data: combinedData});
-    }
 
     function apiAndPluginEnrichment(response) {
         const futureEnrichedCombinedData = Promise.all(
@@ -48,7 +43,12 @@ module.exports = function kong(username, password, adminUrl) {
         );
     }
 
-    function adminApi(resource, additionalConfiguration = {}, offset = null, fnSemigroup = standardKongResponseSemigroup) {
+    function adminApi(resource, additionalConfiguration = {}, offset = null) {
+        function standardKongResponseSemigroup(responseA, responseB) {
+            const combinedData = responseA.data.concat(responseB.data);
+            return merge(responseB, {data: combinedData});
+        }
+
         function retrieveData(nextOffset) {
             const configuration = compose(
                 mergeDeepLeft(additionalConfiguration),
@@ -66,8 +66,8 @@ module.exports = function kong(username, password, adminUrl) {
         return retrieveData(offset)
             .then(result => {
                 if (result.next) {
-                    return adminApi(resource, additionalConfiguration, result.offset, fnSemigroup)
-                        .then(nextResult => fnSemigroup(result, nextResult));
+                    return adminApi(resource, additionalConfiguration, result.offset)
+                        .then(nextResult => standardKongResponseSemigroup(result, nextResult));
                 } else {
                     return result;
                 }
