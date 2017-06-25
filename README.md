@@ -21,7 +21,7 @@ Ensure you have the latest version of Docker running:
 - create the Kong API Gateway Docker container on the `kong-network` and expose ports over to the host network to access
 the admin and proxy APIs
 
-    ```bash
+    ```
     docker run -d --name kong --network kong-network -e "KONG_DATABASE=cassandra" \
       -e "KONG_CASSANDRA_CONTACT_POINTS=kong-database" \
       -p 8000:8000 \
