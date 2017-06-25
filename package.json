@@ -1,0 +1,16 @@
+{
+  "name": "skull-island",
+  "version": "1.0.0",
+  "description": "A tool for diffable Kong configuration",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Calvin Fernandes",
+  "license": "MIT",
+  "dependencies": {
+    "ramda": "^0.24.1",
+    "request": "^2.81.0",
+    "request-promise-native": "^1.0.4"
+  }
+}
