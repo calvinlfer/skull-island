@@ -1,12 +1,15 @@
 # Skull Island for Kong API Gateway #
-Skull Island is a declarative configuration management tool to backup and synchronize Kong API Gateway configuration.
-We recommend using [Kong Dashboard](https://github.com/PGBI/kong-dashboard) to add routes through a UI and then using
-Skull Island to backup the configuration changes and later synchronize it.
+Skull Island is a declarative configuration management tool to backup and
+synchronize Kong API Gateway configuration. We recommend using
+[Kong Dashboard](https://github.com/PGBI/kong-dashboard) to add routes
+through a UI and then using Skull Island to backup the configuration
+changes and later synchronize it.
 
 ## Building out a Kong API gateway environment for testing
 Ensure you have the latest version of Docker running:
 
-- create a virtual Docker network that will host Kong and Cassandra so they may communicate with each other
+- create a virtual Docker network that will host Kong and Cassandra so
+they may communicate with each other
 
     ```
     docker network create kong-network
@@ -18,8 +21,8 @@ Ensure you have the latest version of Docker running:
     docker run -d --name kong-database --network kong-network cassandra:3
     ```
 
-- create the Kong API Gateway Docker container on the `kong-network` and expose ports over to the host network to access
-the admin and proxy APIs
+- create the Kong API Gateway Docker container on the `kong-network` and
+expose ports over to the host network to access the admin and proxy APIs
 
     ```
     docker run -d --name kong --network kong-network -e "KONG_DATABASE=cassandra" \
@@ -31,3 +34,29 @@ the admin and proxy APIs
       -p 7946:7946/udp \
       kong:latest
     ```
+
+### Notes
+To my understanding, the dependency graph can be visualized like this:
+
+`Consumer`s -depend on-> `Plugin`s -depend on-> `API`s
+
+
+There are global `Plugin`s which have no dependency on `API`s like `Syslog`.
+So in terms of deleting or adding, you need to start with the `Consumer`s,
+followed by `Plugin`s and finally `API`s.
+
+
+In order to perform a synchronization, you need to pull down the current
+state of the API gateway and have the backup file on hand. You need to
+perform the following steps for Consumers, Plugins and APIs
+
+- Check what is present in the backup file and compare the entries to
+the entries pulled from the API gateway,
+    - if we have less entries in the file then we need to remove entries
+    from the API gateway.
+    - If we have more entries in the file then we need to add entries
+    into the API gateway
+
+- See if existing entries need to be updated (you could always blindly
+update the server with the data from the file to avoid complications)
+

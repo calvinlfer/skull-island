@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const request = require('request-promise-native');
-const {prop, merge, mergeDeepLeft, compose, assoc} = require('ramda');
+const {prop, merge, mergeDeepLeft, compose, assoc, has} = require('ramda');
 
 module.exports = function kong(username, password, adminUrl) {
     const authentication = "Basic " + new Buffer(username + ":" + password).toString("base64");
@@ -98,6 +98,38 @@ module.exports = function kong(username, password, adminUrl) {
         return retrievalAdminRequest('plugins', {qs: {size: batchSize}}).then(prop('data'));
     }
 
+    async function createOrUpdatePlugin(pluginData) {
+        function updatePlugin(pluginPath, pluginData) {
+            return createOrUpdateAdminRequest(pluginPath, pluginData);
+        }
+
+        function createPlugin(pluginPath, pluginData) {
+            return createOrUpdateAdminRequest(pluginPath, pluginData, {method: 'POST'});
+        }
+
+        const hasApiId = has('api_id');
+
+        // check if this is a global plugin or a it's for a certain API
+        if (hasApiId(pluginData)) {
+            const pluginPath = `apis/${pluginData.api_id}/plugins`;
+            const result = await updatePlugin(pluginPath, pluginData);
+            if (!result) {
+                return createPlugin(pluginPath, pluginData);
+            } else return result;
+        } else {
+            // global plugin
+            const pluginPath = `plugins`;
+            const result = await updatePlugin(pluginPath, pluginData);
+            if (!result) {
+                return createPlugin(pluginPath, pluginData);
+            } else return result;
+        }
+    }
+
+    function removePlugin(pluginId) {
+        return deleteAdminRequest('plugins', pluginId);
+    }
+
     function apis(batchSize = 10) {
         return retrievalAdminRequest('apis', {qs: {size: batchSize},}).then(prop('data'));
     }
@@ -153,6 +185,8 @@ module.exports = function kong(username, password, adminUrl) {
         plugins: {
             pluginsForApi: plugin,
             allPlugins: plugins,
+            createOrUpdatePlugin,
+            removePlugin
         },
         consumers: {
             allConsumers: consumers,
