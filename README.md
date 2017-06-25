@@ -7,17 +7,20 @@ Skull Island to backup the configuration changes and later synchronize it.
 Ensure you have the latest version of Docker running:
 
 - create a virtual Docker network that will host Kong and Cassandra so they may communicate with each other
-    ```bash
+
+    ```
     docker network create kong-network
     ```
 
 - create the Cassandra Docker container on the `kong-network`
-    ```bash
+
+    ```
     docker run -d --name kong-database --network kong-network cassandra:3
     ```
 
 - create the Kong API Gateway Docker container on the `kong-network` and expose ports over to the host network to access
 the admin and proxy APIs
+
     ```bash
     docker run -d --name kong --network kong-network -e "KONG_DATABASE=cassandra" \
       -e "KONG_CASSANDRA_CONTACT_POINTS=kong-database" \
