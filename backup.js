@@ -2,15 +2,15 @@
 const fs = require('fs');
 const kongApi = require('./kong');
 
-const username = "<insert here>";
-const password = "<password>";
-const adminUrl = "<kong-admin-url-with-http>";
+const username = "example";
+const password = "example";
+const adminUrl = "http://127.0.0.1:8001";
 
 async function backupProgram() {
     const kong = kongApi(username, password, adminUrl);
-    const apis = await kong.allEnrichedApis();
-    const plugins = await kong.allPlugins();
-    const consumers = await kong.allEnrichedConsumers();
+    const apis = await kong.apis.allEnrichedApis();
+    const plugins = await kong.plugins.allPlugins();
+    const consumers = await kong.consumers.allEnrichedConsumers();
     const results = { apis, plugins, consumers };
     fs.writeFileSync("example.json", JSON.stringify(results, null, 4));
 }
