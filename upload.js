@@ -1,7 +1,6 @@
 "use strict";
 const fs = require('fs');
 const {promisify} = require('util');
-const {dissoc} = require('ramda');
 const readFile = promisify(fs.readFile);
 const kongApi = require('./kong');
 
@@ -14,10 +13,12 @@ async function uploadProgram() {
     const backupString = await readFile('example.json', {encoding: 'utf8'});
     const backupData = JSON.parse(backupString);
     const apis = backupData.apis;
-    const apisWithoutPlugins = apis.map(dissoc('plugins'));
-    // add all APIs without their plugins
-    apisWithoutPlugins.map(async eachApi => await kong.apis.createOrUpdateApi(eachApi));
+    // Create APIs
+    // apis.map(async eachApi => await kong.apis.createOrUpdateApi(eachApi));
 
+    // Remove all APIs
+    // const apiNames = apis.map(eachApi => eachApi.name);
+    // apiNames.map(async name => await kong.apis.removeApi(name));
 }
 
 uploadProgram();

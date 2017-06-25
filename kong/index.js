@@ -43,7 +43,7 @@ module.exports = function kong(username, password, adminUrl) {
         );
     }
 
-    function retrievalAdminApi(resource, additionalConfiguration = {}, offset = null) {
+    function retrievalAdminRequest(resource, additionalConfiguration = {}, offset = null) {
         function standardKongResponseSemigroup(responseA, responseB) {
             const combinedData = responseA.data.concat(responseB.data);
             return merge(responseB, {data: combinedData});
@@ -66,7 +66,7 @@ module.exports = function kong(username, password, adminUrl) {
         return retrieveData(offset)
             .then(result => {
                 if (result.next) {
-                    return retrievalAdminApi(resource, additionalConfiguration, result.offset)
+                    return retrievalAdminRequest(resource, additionalConfiguration, result.offset)
                         .then(nextResult => standardKongResponseSemigroup(result, nextResult));
                 } else {
                     return result;
@@ -74,7 +74,7 @@ module.exports = function kong(username, password, adminUrl) {
             });
     }
 
-    function createOrUpdateAdminApi(resource, body, additionalConfiguration = {}) {
+    function createOrUpdateAdminRequest(resource, body, additionalConfiguration = {}) {
         const configuration = compose(
             mergeDeepLeft(baseConfiguration),
             mergeDeepLeft(additionalConfiguration)
@@ -82,26 +82,33 @@ module.exports = function kong(username, password, adminUrl) {
        return request(configuration);
     }
 
+    function deleteAdminRequest(resource, entityNameOrId) {
+        const configuration = mergeDeepLeft(
+            baseConfiguration, { url: `${adminUrl}/${resource}/${entityNameOrId}`, method: 'DELETE'}
+        );
+        return request(configuration);
+    }
+
     function plugin(apiId) {
         const configuration = {qs: {api_id: apiId}};
-        return retrievalAdminApi('plugins', configuration).then(prop('data'));
+        return retrievalAdminRequest('plugins', configuration).then(prop('data'));
     }
 
     function plugins(batchSize = 10) {
-        return retrievalAdminApi('plugins', {qs: {size: batchSize}}).then(prop('data'));
+        return retrievalAdminRequest('plugins', {qs: {size: batchSize}}).then(prop('data'));
     }
 
     function apis(batchSize = 10) {
-        return retrievalAdminApi('apis', {qs: {size: batchSize},}).then(prop('data'));
+        return retrievalAdminRequest('apis', {qs: {size: batchSize},}).then(prop('data'));
     }
 
     async function createOrUpdateApi(apiData) {
         function updateApi(apiData) {
-            return createOrUpdateAdminApi('apis', apiData);
+            return createOrUpdateAdminRequest('apis', apiData);
         }
 
         function createApi(apiData) {
-            return createOrUpdateAdminApi('apis', apiData, {method: 'POST'});
+            return createOrUpdateAdminRequest('apis', apiData, {method: 'POST'});
         }
 
         const result = await updateApi(apiData);
@@ -112,35 +119,40 @@ module.exports = function kong(username, password, adminUrl) {
         }
     }
 
+    function removeApi(apiNameOrId) {
+        return deleteAdminRequest('apis', apiNameOrId);
+    }
+
     function apisWithPlugins(batchSize = 10) {
-        return retrievalAdminApi('apis', {qs: {size: batchSize}}, null)
+        return retrievalAdminRequest('apis', {qs: {size: batchSize}}, null)
             .then(apiAndPluginEnrichment)
             .then(prop('data'));
     }
 
     function consumers(batchSize = 10) {
-        return retrievalAdminApi('consumers', {qs: {size: batchSize}}).then(prop('data'));
+        return retrievalAdminRequest('consumers', {qs: {size: batchSize}}).then(prop('data'));
     }
 
     function consumersWithAuthentication(batchSize = 10) {
-        return retrievalAdminApi('consumers', {qs: {size: batchSize}}, null)
+        return retrievalAdminRequest('consumers', {qs: {size: batchSize}}, null)
             .then(consumerWithAuthenticationEnrichment)
             .then(prop('data'));
     }
 
     function consumerDetails(consumerId, topic) {
-        return retrievalAdminApi(`consumers/${consumerId}/${topic}`).then(prop('data'));
+        return retrievalAdminRequest(`consumers/${consumerId}/${topic}`).then(prop('data'));
     }
 
     return {
-        plugins: {
-            pluginsForApi: plugin,
-            allPlugins: plugins,
-        },
         apis: {
             allApis: apis,
             allEnrichedApis: apisWithPlugins,
-            createOrUpdateApi
+            createOrUpdateApi,
+            removeApi
+        },
+        plugins: {
+            pluginsForApi: plugin,
+            allPlugins: plugins,
         },
         consumers: {
             allConsumers: consumers,

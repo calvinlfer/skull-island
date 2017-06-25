@@ -8,7 +8,7 @@ const adminUrl = "http://127.0.0.1:8001";
 
 async function backupProgram() {
     const kong = kongApi(username, password, adminUrl);
-    const apis = await kong.apis.allEnrichedApis();
+    const apis = await kong.apis.allApis();
     const plugins = await kong.plugins.allPlugins();
     const consumers = await kong.consumers.allEnrichedConsumers();
     const results = { apis, plugins, consumers };
