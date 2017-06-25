@@ -43,7 +43,7 @@ module.exports = function kong(username, password, adminUrl) {
         );
     }
 
-    function adminApi(resource, additionalConfiguration = {}, offset = null) {
+    function retrievalAdminApi(resource, additionalConfiguration = {}, offset = null) {
         function standardKongResponseSemigroup(responseA, responseB) {
             const combinedData = responseA.data.concat(responseB.data);
             return merge(responseB, {data: combinedData});
@@ -66,7 +66,7 @@ module.exports = function kong(username, password, adminUrl) {
         return retrieveData(offset)
             .then(result => {
                 if (result.next) {
-                    return adminApi(resource, additionalConfiguration, result.offset)
+                    return retrievalAdminApi(resource, additionalConfiguration, result.offset)
                         .then(nextResult => standardKongResponseSemigroup(result, nextResult));
                 } else {
                     return result;
@@ -74,47 +74,78 @@ module.exports = function kong(username, password, adminUrl) {
             });
     }
 
+    function createOrUpdateAdminApi(resource, body, additionalConfiguration = {}) {
+        const configuration = compose(
+            mergeDeepLeft(baseConfiguration),
+            mergeDeepLeft(additionalConfiguration)
+        )({ url: `${adminUrl}/${resource}`, method: 'PUT', body });
+       return request(configuration);
+    }
+
     function plugin(apiId) {
         const configuration = {qs: {api_id: apiId}};
-        return adminApi('plugins', configuration).then(prop('data'));
+        return retrievalAdminApi('plugins', configuration).then(prop('data'));
     }
 
     function plugins(batchSize = 10) {
-        return adminApi('plugins', {qs: {size: batchSize}}).then(prop('data'));
+        return retrievalAdminApi('plugins', {qs: {size: batchSize}}).then(prop('data'));
     }
 
     function apis(batchSize = 10) {
-        return adminApi('apis', {qs: {size: batchSize},}).then(prop('data'));
+        return retrievalAdminApi('apis', {qs: {size: batchSize},}).then(prop('data'));
+    }
+
+    async function createOrUpdateApi(apiData) {
+        function updateApi(apiData) {
+            return createOrUpdateAdminApi('apis', apiData);
+        }
+
+        function createApi(apiData) {
+            return createOrUpdateAdminApi('apis', apiData, {method: 'POST'});
+        }
+
+        const result = await updateApi(apiData);
+        if (!result) {
+            return createApi(apiData);
+        } else {
+            return result;
+        }
     }
 
     function apisWithPlugins(batchSize = 10) {
-        return adminApi('apis', {qs: {size: batchSize}}, null)
+        return retrievalAdminApi('apis', {qs: {size: batchSize}}, null)
             .then(apiAndPluginEnrichment)
             .then(prop('data'));
     }
 
     function consumers(batchSize = 10) {
-        return adminApi('consumers', {qs: {size: batchSize}}).then(prop('data'));
+        return retrievalAdminApi('consumers', {qs: {size: batchSize}}).then(prop('data'));
     }
 
     function consumersWithAuthentication(batchSize = 10) {
-        return adminApi('consumers', {qs: {size: batchSize}}, null)
+        return retrievalAdminApi('consumers', {qs: {size: batchSize}}, null)
             .then(consumerWithAuthenticationEnrichment)
             .then(prop('data'));
     }
 
     function consumerDetails(consumerId, topic) {
-        return adminApi(`consumers/${consumerId}/${topic}`).then(prop('data'));
+        return retrievalAdminApi(`consumers/${consumerId}/${topic}`).then(prop('data'));
     }
 
     return {
-        pluginsForApi: plugin,
-        allPlugins: plugins,
-        allApis: apis,
-        allEnrichedApis: apisWithPlugins,
-        allConsumers: consumers,
-        consumerDetails: consumerDetails,
-        allEnrichedConsumers: consumersWithAuthentication,
-        admin: adminApi
+        plugins: {
+            pluginsForApi: plugin,
+            allPlugins: plugins,
+        },
+        apis: {
+            allApis: apis,
+            allEnrichedApis: apisWithPlugins,
+            createOrUpdateApi
+        },
+        consumers: {
+            allConsumers: consumers,
+            consumerDetails: consumerDetails,
+            allEnrichedConsumers: consumersWithAuthentication
+        }
     };
 };
