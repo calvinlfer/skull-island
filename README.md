@@ -40,13 +40,13 @@ they may communicate with each other
 expose ports over to the host network to access the admin and proxy APIs
 
     ```
-    docker run -d --name kong --network kong-network -e "KONG_DATABASE=cassandra" \
-      -e "KONG_CASSANDRA_CONTACT_POINTS=kong-database" \
-      -p 8000:8000 \
-      -p 8443:8443 \
-      -p 8001:8001 \
-      -p 7946:7946 \
-      -p 7946:7946/udp \
+    docker run -d --name kong --network kong-network -e "KONG_DATABASE=cassandra" 
+      -e "KONG_CASSANDRA_CONTACT_POINTS=kong-database" 
+      -p 8000:8000 
+      -p 8443:8443 
+      -p 8001:8001 
+      -p 7946:7946 
+      -p 7946:7946/udp 
       kong:latest
     ```
 
