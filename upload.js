@@ -16,6 +16,7 @@ async function uploadProgram() {
     const backupData = JSON.parse(backupString);
     const apis = backupData.apis;
     const plugins = backupData.plugins;
+    const consumers = backupData.consumers;
 
     // Create APIs
     apis.map(async eachApi => await kong.apis.createOrUpdateApi(eachApi));
@@ -36,6 +37,15 @@ async function uploadProgram() {
     // const pluginIds = plugins.map(eachPlugin => eachPlugin.id);
     // pluginIds.map(async id => await kong.plugins.removePlugin(id).catch(err => console.log(err.message)));
     // console.log('Plugin deletion complete');
+
+    // Create Consumers and their Credentials
+    consumers.map(async eachConsumer => await kong.consumers.createOrUpdateConsumerWithCredentials(eachConsumer));
+    console.log('Consumer with Credentials creation complete');
+
+    // Remove Consumers
+    // const consumerIds = consumers.map(eachConsumer => eachConsumer.id);
+    // consumerIds.map(async id => await kong.consumers.removeConsumerWithCredentials(id).catch(err => console.log(err.message)));
+    // console.log('Consumer deletion complete')
 }
 
 uploadProgram();

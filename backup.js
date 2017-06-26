@@ -2,9 +2,9 @@
 const fs = require('fs');
 const kongApi = require('./kong');
 
-const username = "example";
-const password = "example";
-const adminUrl = "http://127.0.0.1:8001";
+const username = "cfernandes";
+const password = "cfernandescfernandescfernandes";
+const adminUrl = "https://ci-kong.api.loyalty.com/kong";
 
 async function backupProgram() {
     const kong = kongApi(username, password, adminUrl);

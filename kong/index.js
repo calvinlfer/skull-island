@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const request = require('request-promise-native');
-const {prop, merge, mergeAll, mergeDeepLeft, compose, assoc, dissoc, has} = require('ramda');
+const {prop, merge, mergeAll, mergeDeepLeft, compose, assoc, dissoc, has, pickBy, keys} = require('ramda');
 
 module.exports = function kong(username, password, adminUrl) {
     const authentication = "Basic " + new Buffer(username + ":" + password).toString("base64");
@@ -86,6 +86,7 @@ module.exports = function kong(username, password, adminUrl) {
         const configuration = mergeDeepLeft(
             baseConfiguration, { url: `${adminUrl}/${resource}/${entityNameOrId}`, method: 'DELETE'}
         );
+        console.log(configuration);
         return request(configuration);
     }
 
@@ -181,6 +182,60 @@ module.exports = function kong(username, password, adminUrl) {
         return retrievalAdminRequest(`consumers/${consumerId}/${topic}`).then(prop('data'));
     }
 
+    async function createOrUpdateConsumerWithCredentials(consumerDataWithCredentials) {
+        async function createOrUpdateConsumer(consumerData) {
+            function updateConsumer(consumerData) {
+                return createOrUpdateAdminRequest('consumers', consumerData);
+            }
+
+            function createConsumer(consumerData) {
+                return createOrUpdateAdminRequest('consumers', consumerData, {method: 'POST'});
+            }
+
+            const result = await updateConsumer(consumerData);
+            if (!result) {
+                return await createConsumer(consumerData);
+            } else {
+                return result;
+            }
+        }
+
+        async function createOrUpdateConsumerCredential(credentialType, credentialDataList) {
+            function updateConsumerCredential(consumerId, consumerData) {
+                return createOrUpdateAdminRequest(`consumers/${consumerId}/${credentialType}`, consumerData);
+            }
+
+            function createConsumerCredential(consumerId, consumerData) {
+                return createOrUpdateAdminRequest(`consumers/${consumerId}/${credentialType}`, consumerData, {method: 'POST'});
+            }
+
+            return credentialDataList.map(async credentialData => {
+                const consumerId = credentialData.consumer_id;
+                const result = await updateConsumerCredential(consumerId, credentialData);
+                if (!result) {
+                    return await createConsumerCredential(consumerId, credentialData);
+                } else {
+                    return result;
+                }
+            });
+        }
+
+        const criteria = (value, key) => value.length > 0;
+        const credentialPlugins = consumerDataWithCredentials.credentials;
+        const filteredCredentialPlugins = pickBy(criteria, credentialPlugins);
+        const consumerData = dissoc('credentials', consumerDataWithCredentials);
+
+        await createOrUpdateConsumer(consumerData);
+
+        keys(filteredCredentialPlugins).map(async key =>
+            await createOrUpdateConsumerCredential(key, filteredCredentialPlugins[key])
+        );
+    }
+
+    function removeConsumerWithCredentials(consumerNameOrId) {
+        return deleteAdminRequest('consumers', consumerNameOrId)
+    }
+
     return {
         apis: {
             allApis: apis,
@@ -197,7 +252,9 @@ module.exports = function kong(username, password, adminUrl) {
         consumers: {
             allConsumers: consumers,
             consumerDetails: consumerDetails,
-            allEnrichedConsumers: consumersWithAuthentication
+            allEnrichedConsumers: consumersWithAuthentication,
+            createOrUpdateConsumerWithCredentials,
+            removeConsumerWithCredentials
         }
     };
 };
