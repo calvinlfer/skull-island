@@ -6,7 +6,7 @@ services:
     container_name: cassandra-database
 
   kong:
-    image: kong:latest
+    image: kong:0.10.3
     # Cassandra takes a while to initialize so Kong will error out, ensure it restarts so that when Cassandra is ready
     # then Kong will also be up and ready to take requests
     restart: always
