@@ -86,7 +86,6 @@ module.exports = function kong(username, password, adminUrl) {
         const configuration = mergeDeepLeft(
             baseConfiguration, { url: `${adminUrl}/${resource}/${entityNameOrId}`, method: 'DELETE'}
         );
-        console.log(configuration);
         return request(configuration);
     }
 
