@@ -75,3 +75,6 @@ the entries pulled from the API gateway,
 - See if existing entries need to be updated (you could always blindly
 update the server with the data from the file to avoid complications)
 
+*Note*: you cannot rely on blind updates to existing records, you must
+look at each one for differences and if you find differences, then
+delete the one on the server and upload the new one.
