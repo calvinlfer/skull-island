@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const request = require('request-promise-native');
-const {prop, merge, mergeAll, mergeDeepLeft, compose, assoc, has} = require('ramda');
+const {prop, merge, mergeAll, mergeDeepLeft, compose, assoc, dissoc, has} = require('ramda');
 
 module.exports = function kong(username, password, adminUrl) {
     const authentication = "Basic " + new Buffer(username + ":" + password).toString("base64");
@@ -168,7 +168,7 @@ module.exports = function kong(username, password, adminUrl) {
     function consumersWithAuthentication(batchSize = 10) {
         function flattenCredentialStructure(enrichedConsumer) {
             const aggregatedCredentials = mergeAll(enrichedConsumer.credentials);
-            return mergeDeepLeft(aggregatedCredentials, enrichedConsumer)
+            return mergeDeepLeft({ credentials: aggregatedCredentials }, dissoc('credentials', enrichedConsumer))
         }
 
         return retrievalAdminRequest('consumers', {qs: {size: batchSize}}, null)
