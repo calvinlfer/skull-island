@@ -8,20 +8,35 @@ changes and later synchronize it.
 ## Building out a Kong API gateway environment for testing
 Ensure you have the latest version of Docker running:
 
-- create a virtual Docker network that will host Kong and Cassandra so
+### Docker Compose
+To bring up Cassandra and the Kong API Gateway, use
+```
+docker-compose up
+```
+
+You can add a `-d` flag if you want to run it in the background and not
+have the logs pollute your terminal.
+
+Once you are finished, and want to clean up, use
+```
+docker-compose down
+```
+
+### Just Docker
+1. create a virtual Docker network that will host Kong and Cassandra so
 they may communicate with each other
 
     ```
     docker network create kong-network
     ```
 
-- create the Cassandra Docker container on the `kong-network`
+2. create the Cassandra Docker container on the `kong-network`
 
     ```
     docker run -d --name kong-database --network kong-network cassandra:3
     ```
 
-- create the Kong API Gateway Docker container on the `kong-network` and
+3. create the Kong API Gateway Docker container on the `kong-network` and
 expose ports over to the host network to access the admin and proxy APIs
 
     ```
