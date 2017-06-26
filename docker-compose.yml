@@ -7,6 +7,8 @@ services:
 
   kong:
     image: kong:latest
+    # Cassandra takes a while to initialize so Kong will error out, ensure it restarts so that when Cassandra is ready
+    # then Kong will also be up and ready to take requests
     restart: always
     container_name: kong-api-gateway
     # make use of the container-name DNS to reference the database
