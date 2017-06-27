@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const request = require('request-promise-native');
-const {prop, merge, mergeAll, mergeDeepLeft, compose, assoc, dissoc, has, pickBy, keys} = require('ramda');
+const {prop, merge, mergeAll, mergeDeepLeft, compose, assoc, dissoc, has, pickBy, keys, filter} = require('ramda');
 
 module.exports = function kong(username, password, adminUrl) {
     const authentication = "Basic " + new Buffer(username + ":" + password).toString("base64");
@@ -181,7 +181,7 @@ module.exports = function kong(username, password, adminUrl) {
         return retrievalAdminRequest(`consumers/${consumerId}/${topic}`).then(prop('data'));
     }
 
-    async function createOrUpdateConsumerWithCredentials(consumerDataWithCredentials) {
+    async function createOrUpdateConsumerWithCredentials(consumerDataWithCredentials, uploadBasicAuthenticationCredentials = false) {
         async function createOrUpdateConsumer(consumerData) {
             function updateConsumer(consumerData) {
                 return createOrUpdateAdminRequest('consumers', consumerData);
@@ -221,7 +221,16 @@ module.exports = function kong(username, password, adminUrl) {
 
         const criteria = (value, key) => value.length > 0;
         const credentialPlugins = consumerDataWithCredentials.credentials;
-        const filteredCredentialPlugins = pickBy(criteria, credentialPlugins);
+        let filteredCredentialPlugins = pickBy(criteria, credentialPlugins);
+
+        if (uploadBasicAuthenticationCredentials) {
+            console.log(`WARNING: Synchronizing basic-auth consumer credentials for consumer: (${username}, ${consumerDataWithCredentials.id})`);
+            filteredCredentialPlugins = filter(
+                credentialPlugin => credentialPlugin.key !== 'basic-auth',
+                filteredCredentialPlugins
+            )
+        }
+
         const consumerData = dissoc('credentials', consumerDataWithCredentials);
 
         await createOrUpdateConsumer(consumerData);

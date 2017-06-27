@@ -30,56 +30,45 @@ async function synchronizeProgram() {
 
     const entityIdComparator = (aEntity, bEntity) => aEntity.id === bEntity.id;
 
-    // detect Consumers on the server that are not present on disk
+    // detect and remove Consumers on the server that are not present on disk
     const consumersToDeleteFromServer = differenceWith(entityIdComparator, serverConsumers, diskConsumers);
     const consumerIds = consumersToDeleteFromServer.map(eachConsumer => eachConsumer.id);
-    console.log(consumerIds);
-    consumerIds.map(async id => await kong.consumers.removeConsumerWithCredentials(id).catch(err => console.log(err.message)));
-    console.log('Extra consumers on server have been deleted');
+    if (consumerIds.length > 0) {
+        console.log(consumerIds);
+        consumerIds.map(async id => await kong.consumers.removeConsumerWithCredentials(id).catch(err => console.log(err.message)));
+        console.log('Extra consumers on server have been deleted');
+        await delay(3000);
+    }
 
-    await delay(3000);
-
-    // detect Plugins on the server that are not present on disk
+    // detect and remove Plugins on the server that are not present on disk
     const pluginsToDeleteFromServer = differenceWith(entityIdComparator, serverPlugins, diskPlugins);
     const pluginIds = pluginsToDeleteFromServer.map(eachPlugin => eachPlugin.id);
-    console.log(pluginIds);
-    pluginIds.map(async id => await kong.plugins.removePlugin(id).catch(err => console.log(err.message)));
-    console.log('Extra plugins on server have been deleted');
+    if (pluginIds.length > 0) {
+        console.log(pluginIds);
+        pluginIds.map(async id => await kong.plugins.removePlugin(id).catch(err => console.log(err.message)));
+        console.log('Extra plugins on server have been deleted');
+        await delay(3000);
+    }
 
-    await delay(3000);
-
-    // detect APIs on the server that are not present on disk
+    // detect and remove APIs on the server that are not present on disk
     const apisToDeleteFromServer = differenceWith(entityIdComparator, serverApis, diskApis);
     const apiIds = apisToDeleteFromServer.map(eachApi => eachApi.id);
-    console.log(apiIds);
-    apiIds.map(async id => await kong.apis.removeApi(id).catch(err => console.log(err.message)));
-    console.log('Extra APIs on server have been deleted');
+    if (apiIds.length > 0) {
+        console.log(apiIds);
+        apiIds.map(async id => await kong.apis.removeApi(id).catch(err => console.log(err.message)));
+        console.log('Extra APIs on server have been deleted');
+        await delay(3000);
+    }
 
-    await delay(3000);
-
-    // at this point all extra server entities have been removed, now we update all entities from the disk into the server
+    // At this point all extra server entities have been removed, now we update all entities from the disk into the server
     console.log('Updating APIs');
-    diskApis.map(async eachApi => {
-        await kong.apis.removeApi(eachApi.id).catch(err => {
-            console.log('Could not execute entity request: ' + err.options.method + ' ' + err.options.url);
-            console.log('Reason: ' + err.error.message);
-        });
-        await delay(waitTimeMs);
-        return await kong.apis.createOrUpdateApi(eachApi);
-    });
+    diskApis.map(async eachApi => await kong.apis.createOrUpdateApi(eachApi));
     console.log('API updates complete');
 
     await delay(3000);
 
     console.log('Updating Plugins');
-    diskPlugins.map(async eachPlugin => {
-        await kong.plugins.removePlugin(eachPlugin.id).catch(err => {
-            console.log('Could not execute entity request: ' + err.options.method + ' ' + err.options.url);
-            console.log('Reason: ' + err.error.message);
-        });
-        await delay(waitTimeMs);
-        return await kong.plugins.createOrUpdatePlugin(eachPlugin)
-    });
+    diskPlugins.map(async eachPlugin => await kong.plugins.createOrUpdatePlugin(eachPlugin));
     console.log('Plugin updates complete');
 
     await delay(3000);
@@ -91,7 +80,7 @@ async function synchronizeProgram() {
             console.log('Reason: ' + err.error.message);
         });
         await delay(waitTimeMs);
-        return await kong.consumers.createOrUpdateConsumerWithCredentials(eachConsumer)
+        return await kong.consumers.createOrUpdateConsumerWithCredentials(eachConsumer, true)
     });
     console.log('Consumer and Credentials updates complete');
 
