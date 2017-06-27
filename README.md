@@ -5,6 +5,10 @@ synchronize Kong API Gateway configuration. We recommend using
 through a UI and then using Skull Island to backup the configuration
 changes and later synchronize it.
 
+<h5>
+    <span style="color:red">This is a work-in-progress, please use at your own risk<</span>
+</h5>
+
 ## Building out a Kong API gateway environment for testing
 Ensure you have the latest version of Docker running:
 
