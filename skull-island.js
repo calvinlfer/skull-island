@@ -28,8 +28,8 @@ cli.version(version)
     .option('-l, --url <url>', 'Kong Admin API URL (eg. http://127.0.0.1:8001)')
     .option('-b --synch-basic-auth-creds', 'Tell the synchronization process to upload basic authentication data ' +
         '(WARNING: passwords must be in plaintext and this is disabled by default). '.red +
-        'Do not dump your basic-authentication configuration and attempt to synchronize it, ' +
-        'your credentials will stop working. You have been warned'.reset
+        'Do not dump your basic-authentication configuration and attempt to synchronize it, your credentials will stop working. '.bold +
+        'You have been warned'.reset
     );
 
 cli.command('backup [filename]')
@@ -156,10 +156,40 @@ cli.command('synchronize [filename]')
                 return await kong.consumers.createOrUpdateConsumerWithCredentials(eachConsumer, synchronizeBasicAuthCreds)
             });
             console.log('Consumer and Credentials updates complete'.green);
-
             console.log('Synchronization process complete'.green.bold);
         } catch (e) {
             console.log(e.message.red);
+        } finally {
+            console.log(' '.reset);
+        }
+    });
+
+cli.command('teardown')
+    .description('This will wipe all entities of the Kong API Gateway, use with caution!'.red.reset)
+    .alias('boom')
+    .action(async () => {
+        checkValidFlagsAndFailFast(cli.url, cli.username, cli.password);
+
+        try {
+            const context = kongContext(cli.username, cli.password, cli.url);
+            const kong = kongApi(context);
+            const apis = await kong.apis.allApis();
+            const plugins = await kong.plugins.allPlugins();
+            const consumers = await kong.consumers.allEnrichedConsumers();
+
+            const consumerIds = consumers.map(eachConsumer => eachConsumer.id);
+            consumerIds.map(async id => await kong.consumers.removeConsumerWithCredentials(id).catch(err => console.log(err.message.grey)));
+            console.log('Consumer deletion complete'.red);
+
+            const pluginIds = plugins.map(eachPlugin => eachPlugin.id);
+            pluginIds.map(async id => await kong.plugins.removePlugin(id).catch(err => console.log(err.message.grey)));
+            console.log('Plugin deletion complete'.red);
+
+            const apiNames = apis.map(eachApi => eachApi.name);
+            apiNames.map(async name => await kong.apis.removeApi(name).catch(err => console.log(err.message.grey)));
+            console.log('API deletion complete'.red.reset);
+        } catch (e) {
+            console.log(e.message.red)
         } finally {
             console.log(' '.reset);
         }

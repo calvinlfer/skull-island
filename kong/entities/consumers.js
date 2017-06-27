@@ -1,5 +1,5 @@
 "use strict";
-const {prop, merge, mergeAll, mergeDeepLeft, assoc, dissoc, pickBy, keys, filter} = require('ramda');
+const {prop, merge, mergeAll, mergeDeepLeft, assoc, dissoc, pickBy, keys} = require('ramda');
 
 module.exports = function kongConsumers(connectionContext) {
     const {retrievalAdminRequest, createOrUpdateAdminRequest, deleteAdminRequest} = connectionContext;
@@ -89,12 +89,10 @@ module.exports = function kongConsumers(connectionContext) {
         const credentialPlugins = consumerDataWithCredentials.credentials;
         let filteredCredentialPlugins = pickBy(criteria, credentialPlugins);
 
-        if (uploadBasicAuthenticationCredentials) {
+        if (!uploadBasicAuthenticationCredentials) {
+            filteredCredentialPlugins = dissoc('basic-auth', filteredCredentialPlugins);
+        } else {
             console.log(`WARNING: Synchronizing basic-auth consumer credentials for consumer: (${consumerDataWithCredentials.username}, ${consumerDataWithCredentials.id})`);
-            filteredCredentialPlugins = filter(
-                credentialPlugin => credentialPlugin.key !== 'basic-auth',
-                filteredCredentialPlugins
-            )
         }
 
         const consumerData = dissoc('credentials', consumerDataWithCredentials);
