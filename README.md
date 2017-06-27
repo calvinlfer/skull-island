@@ -6,7 +6,7 @@ to add routes through a UI and then using Skull Island to backup the
 configuration changes and later synchronize it.
 
 <h5>
-    <span style="color:red">This is a work-in-progress, please use at your own risk<</span>
+    <span style="color:red">This is a work-in-progress, please use at your own risk</span>
 </h5>
 
 ## Building out a Kong API gateway environment for testing
