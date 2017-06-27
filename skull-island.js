@@ -27,7 +27,9 @@ cli.version(version)
     .option('-p, --password <pass>', 'Kong Admin API Password (optional unless username is specified)')
     .option('-l, --url <url>', 'Kong Admin API URL (eg. http://127.0.0.1:8001)')
     .option('-b --synch-basic-auth-creds', 'Tell the synchronization process to upload basic authentication data ' +
-        '(warning: it must be in plaintext and this is disabled by default)'
+        '(WARNING: passwords must be in plaintext and this is disabled by default). '.red +
+        'Do not dump your basic-authentication configuration and attempt to synchronize it, ' +
+        'your credentials will stop working. You have been warned'.reset
     );
 
 cli.command('backup [filename]')
@@ -55,14 +57,16 @@ cli.command('backup [filename]')
             console.log(`Backup data has been written to ${adjustedFileName}`.green)
         } catch (e) {
             console.log(e.message.red)
+        } finally {
+            console.log(' '.reset);
         }
     });
 
 cli.command('synchronize [filename]')
     .description(
-        'Synchronizes the configuration file on disk with the configuration on the server. It will remove server ' +
-        'entities that are not present in the configuration file and will update the rest of the entities. ' +
-        'The default filename is kong-backup.json'
+        'Synchronizes the configuration file (defaults to kong-backup.json) on disk with the configuration on the ' +
+        'server. It will remove server entities that are not present in the configuration file and will update the rest ' +
+        'of the entities. The default filename is kong-backup.json'
     )
     .alias('synch')
     .action(async filename => {
@@ -156,6 +160,8 @@ cli.command('synchronize [filename]')
             console.log('Synchronization process complete'.green.bold);
         } catch (e) {
             console.log(e.message.red);
+        } finally {
+            console.log(' '.reset);
         }
     });
 
