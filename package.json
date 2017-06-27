@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "A tool for diffable Kong configuration",
   "main": "skull-island.js",
-  "scripts": {
-    "start": "node skull-island.js"
+  "bin": {
+    "skull-island": "./bin/skull-island.js"
   },
   "author": "Calvin Fernandes",
   "license": "MIT",

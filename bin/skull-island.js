@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 'use strict';
 
 const fs = require('fs');
@@ -6,9 +8,9 @@ const colors = require('colors');
 const {promisify} = require('util');
 const readFile = promisify(fs.readFile);
 const {is, differenceWith}= require('ramda');
-const {version} = require('./package.json');
-const kongContext = require('./kong/context');
-const kongApi = require('./kong');
+const {version} = require('../package.json');
+const kongContext = require('../kong/context');
+const kongApi = require('../kong/index');
 
 function checkValidFlagsAndFailFast(url, username, password) {
     if (!url) {
