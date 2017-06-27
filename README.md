@@ -9,6 +9,75 @@ configuration changes and later synchronize it.
     <span style="color:red">This is a work-in-progress, please use at your own risk</span>
 </h5>
 
+## Caveats and Design Decisions
+Kong's `basic-auth` consumer credentials currently cannot be backed up
+and re-applied because the backup obtains encrypted credentials and
+reapplying the encrypted credentials causes the credentials to be
+encrypted once more which is incorrect and will cause your credentials
+to stop working. As a result, we disable synchronization of basic
+authentication consumer credentials by default. There is a flag (`-b`)
+which allows you to synchronize basic authentication credentials
+provided that you store plaintext credentials in the backup file. The
+intended use case for Skull-Island was to be used in conjunction with
+[Kong-Dashboard](https://github.com/PGBI/kong-dashboard) in order to
+have a better process workflow rather than coming up with your own JSON
+configuration.
+
+For the synchronization process, extra entities for APIs, Plugins and
+Consumers that are present on the server and are not present on disk are
+deleted. For now, all Consumer Credentials (except basic-authentication
+unless specified) are removed from the server completely and then
+synchronized from disk resulting in slight downtime.
+
+## Installation
+This application is meant to be used as a command line tool.
+You can install the latest version globally:
+```bash
+npm install -g skull-island
+```
+
+If you have an older version and need to upgrade to the latest version:
+```bash
+npm upgrade -g skull-island
+```
+
+## Running the application
+
+### Backup
+In order to backup a running Kong API gateway configuration to disk, use
+the `backup` command:
+```bash
+skull-island backup --url http://127.0.0.1:8001
+```
+
+Kong API Gateway is running on `127.0.0.1` and the administration port
+is running on port `8001`. You can find additional parameters using
+`skull-island backup -h`. The default backup file is generated in the
+current directory called `kong-backup.json`.
+
+### Synchronization
+In order to synchronize a configuration on disk to a running Kong API
+Gateway, use the `synchronize` command:
+```bash
+skull-island synchronize --url http://127.0.0.1:8001
+```
+
+Kong API Gateway is running on `127.0.0.1` and the administration port
+is running on port `8001`. You can find additional parameters using
+`skull-island synchronize -h`. The default backup file that is used for
+the synchronization process must exist in the current directory and is
+expected to be called `kong-backup.json`.
+
+### Teardown
+In order to wipe a Kong API Gateway clean of entities (APIs, Plugins,
+Consumers, and Consumer Credentials), use the `teardown` command:
+```bash
+skull-island teardown --url http://127.0.0.1:8001
+```
+
+Kong API Gateway is running on `127.0.0.1` and the administration port
+is running on port `8001`.
+
 ## Building out a Kong API gateway environment for testing
 Ensure you have the latest version of Docker running:
 
@@ -44,13 +113,13 @@ they may communicate with each other
 expose ports over to the host network to access the admin and proxy APIs
 
     ```
-    docker run -d --name kong --network kong-network -e "KONG_DATABASE=cassandra" 
-      -e "KONG_CASSANDRA_CONTACT_POINTS=kong-database" 
-      -p 8000:8000 
-      -p 8443:8443 
-      -p 8001:8001 
-      -p 7946:7946 
-      -p 7946:7946/udp 
+    docker run -d --name kong --network kong-network -e "KONG_DATABASE=cassandra"
+      -e "KONG_CASSANDRA_CONTACT_POINTS=kong-database"
+      -p 8000:8000
+      -p 8443:8443
+      -p 8001:8001
+      -p 7946:7946
+      -p 7946:7946/udp
       kong:latest
     ```
 
