@@ -1,15 +1,8 @@
 'use strict';
+const {prop, merge, mergeAll, mergeDeepLeft, assoc, dissoc, has, pickBy, keys, filter} = require('ramda');
 
-const fs = require('fs');
-const request = require('request-promise-native');
-const {prop, merge, mergeAll, mergeDeepLeft, compose, assoc, dissoc, has, pickBy, keys, filter} = require('ramda');
-
-module.exports = function kong(username, password, adminUrl) {
-    const authentication = "Basic " + new Buffer(username + ":" + password).toString("base64");
-    const baseConfiguration = {
-        headers: {"Authorization": authentication},
-        json: true
-    };
+module.exports = function kong(connectionContext) {
+    const {retrievalAdminRequest, createOrUpdateAdminRequest, deleteAdminRequest} = connectionContext;
 
     function apiAndPluginEnrichment(response) {
         const futureEnrichedCombinedData = Promise.all(
@@ -41,52 +34,6 @@ module.exports = function kong(username, password, adminUrl) {
         return futureEnrichedConsumers.then(enrichedData =>
             merge(response, { data: enrichedData })
         );
-    }
-
-    function retrievalAdminRequest(resource, additionalConfiguration = {}, offset = null) {
-        function standardKongResponseSemigroup(responseA, responseB) {
-            const combinedData = responseA.data.concat(responseB.data);
-            return merge(responseB, {data: combinedData});
-        }
-
-        function retrieveData(nextOffset) {
-            const configuration = compose(
-                mergeDeepLeft(additionalConfiguration),
-                mergeDeepLeft(baseConfiguration)
-            )({url: `${adminUrl}/${resource}`});
-
-            if (!nextOffset) {
-                return request(configuration)
-            } else {
-                const updatedConfiguration = mergeDeepLeft(configuration, {qs: {offset: nextOffset}});
-                return request(updatedConfiguration)
-            }
-        }
-
-        return retrieveData(offset)
-            .then(result => {
-                if (result.next) {
-                    return retrievalAdminRequest(resource, additionalConfiguration, result.offset)
-                        .then(nextResult => standardKongResponseSemigroup(result, nextResult));
-                } else {
-                    return result;
-                }
-            });
-    }
-
-    function createOrUpdateAdminRequest(resource, body, additionalConfiguration = {}) {
-        const configuration = compose(
-            mergeDeepLeft(baseConfiguration),
-            mergeDeepLeft(additionalConfiguration)
-        )({ url: `${adminUrl}/${resource}`, method: 'PUT', body });
-       return request(configuration);
-    }
-
-    function deleteAdminRequest(resource, entityNameOrId) {
-        const configuration = mergeDeepLeft(
-            baseConfiguration, { url: `${adminUrl}/${resource}/${entityNameOrId}`, method: 'DELETE'}
-        );
-        return request(configuration);
     }
 
     function plugin(apiId) {
@@ -224,7 +171,7 @@ module.exports = function kong(username, password, adminUrl) {
         let filteredCredentialPlugins = pickBy(criteria, credentialPlugins);
 
         if (uploadBasicAuthenticationCredentials) {
-            console.log(`WARNING: Synchronizing basic-auth consumer credentials for consumer: (${username}, ${consumerDataWithCredentials.id})`);
+            console.log(`WARNING: Synchronizing basic-auth consumer credentials for consumer: (${consumerDataWithCredentials.username}, ${consumerDataWithCredentials.id})`);
             filteredCredentialPlugins = filter(
                 credentialPlugin => credentialPlugin.key !== 'basic-auth',
                 filteredCredentialPlugins

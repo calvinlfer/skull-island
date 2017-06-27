@@ -4,6 +4,7 @@ const fs = require('fs');
 const {differenceWith} = require('ramda');
 const {promisify} = require('util');
 const readFile = promisify(fs.readFile);
+const kongContext = require('./kong/context');
 const kongApi = require('./kong');
 
 const username = "example";
@@ -12,7 +13,8 @@ const adminUrl = "http://localhost:8001";
 const waitTimeMs = 500;
 
 async function synchronizeProgram() {
-    const kong = kongApi(username, password, adminUrl);
+    const context = kongContext(username, password, adminUrl);
+    const kong = kongApi(context);
 
     // from disk
     const backupString = await readFile('example.json', {encoding: 'utf8'});
