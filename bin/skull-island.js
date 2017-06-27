@@ -70,7 +70,7 @@ cli.command('synchronize [filename]')
         'server. It will remove server entities that are not present in the configuration file and will update the rest ' +
         'of the entities. The default filename is kong-backup.json'
     )
-    .alias('synch')
+    .alias('sync')
     .action(async filename => {
         checkValidFlagsAndFailFast(cli.url, cli.username, cli.password);
         const synchronizeBasicAuthCreds = cli.synchBasicAuthCreds;
