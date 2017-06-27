@@ -1,11 +1,11 @@
 "use strict";
-const {prop, merge, mergeAll, mergeDeepLeft, assoc, dissoc, pickBy, keys} = require('ramda');
+const {prop, merge, mergeAll, mergeDeepLeft, assoc, dissoc, pickBy, keys, reduce} = require('ramda');
 
 module.exports = function kongConsumers(connectionContext) {
     const {retrievalAdminRequest, createOrUpdateAdminRequest, deleteAdminRequest} = connectionContext;
+    const authPlugins = ['jwt', 'basic-auth', 'oauth2', 'key-auth', 'hmac-auth', 'acls'];
 
     function consumerWithAuthenticationEnrichment(response) {
-        const authPlugins = ['jwt', 'basic-auth', 'oauth2', 'key-auth', 'hmac-auth', 'acls'];
         const futureEnrichedConsumers = Promise.all(
             response.data.map(eachConsumer => {
                 const futureAllTopicsForConsumer = Promise.all(
@@ -108,11 +108,36 @@ module.exports = function kongConsumers(connectionContext) {
         return deleteAdminRequest('consumers', consumerNameOrId)
     }
 
+    // Removes all consumer credentials except basic-auth
+    async function cleanConsumerWithCredentials(consumerNameOrId) {
+        const plugins = await reduce(async (acc, nextPlugin) => {
+            const pluginData = await consumerDetails(consumerNameOrId, nextPlugin);
+            const pluginObject = assoc(nextPlugin, pluginData, {});
+            // async-await functions return promises, so the acc from the previous round is in a Promise context
+            return mergeDeepLeft(pluginObject, await acc);
+        }, {}, authPlugins);
+
+        const pluginsDataWithoutBasicAuth = dissoc('basic-auth', plugins);
+        return authPlugins
+            .filter(pluginName => pluginName !== 'basic-auth')
+            .filter(pluginName => pluginsDataWithoutBasicAuth[pluginName].length > 0)
+            .map(pluginName => {
+                const credentialList = pluginsDataWithoutBasicAuth[pluginName];
+                return {pluginName, credentialList};
+            })
+            .map(({pluginName, credentialList}) =>
+                credentialList.map(async credential =>
+                    await deleteAdminRequest(`consumers/${consumerNameOrId}/${pluginName}`, credential.id)
+                )
+            );
+    }
+
     return {
         consumers,
         consumerDetails,
         consumersWithAuthentication,
         createOrUpdateConsumerWithCredentials,
-        removeConsumerWithCredentials
+        removeConsumerWithCredentials,
+        cleanConsumerWithCredentials
     };
 };

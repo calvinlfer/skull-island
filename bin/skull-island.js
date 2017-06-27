@@ -149,14 +149,28 @@ cli.command('synchronize [filename]')
             await delay(waitTimeInMs);
 
             console.log('Updating Consumers and Credentials'.bold);
-            diskConsumers.map(async eachConsumer => {
-                await kong.consumers.removeConsumerWithCredentials(eachConsumer.id).catch(err => {
-                    console.log(`Could not execute entity request: ${err.options.method} ${err.options.url}`.grey);
-                    console.log('Reason: ' + err.error.message.grey);
+            if (synchronizeBasicAuthCreds) {
+                console.log('WARNING: Synchronizing all consumer credentials including basic authentication');
+                diskConsumers.map(async eachConsumer => {
+                    await kong.consumers.removeConsumerWithCredentials(eachConsumer.id).catch(err => {
+                        console.log(`Could not execute entity request: ${err.options.method} ${err.options.url}`.grey);
+                        console.log('Reason: ' + err.error.message.grey);
+                    });
+
+                    await delay(500);
+                    return await kong.consumers.createOrUpdateConsumerWithCredentials(eachConsumer, synchronizeBasicAuthCreds)
                 });
-                await delay(500);
-                return await kong.consumers.createOrUpdateConsumerWithCredentials(eachConsumer, synchronizeBasicAuthCreds)
-            });
+            } else {
+                diskConsumers.map(async eachConsumer => {
+                    await kong.consumers.cleanConsumerWithCredentials(eachConsumer.id).catch(err => {
+                        console.log(`Could not execute entity request: ${err.options.method} ${err.options.url}`.grey);
+                        console.log('Reason: ' + err.error.message.grey);
+                    });
+
+                    await delay(500);
+                    return await kong.consumers.createOrUpdateConsumerWithCredentials(eachConsumer, synchronizeBasicAuthCreds)
+                });
+            }
             console.log('Consumer and Credentials updates complete'.green);
             console.log('Synchronization process complete'.green.bold);
         } catch (e) {

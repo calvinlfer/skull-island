@@ -7,7 +7,7 @@ module.exports = function kong(connectionContext) {
     const {allApis, createOrUpdateApi, removeApi} = kongApis(connectionContext);
     const {plugin, plugins, createOrUpdatePlugin, removePlugin} = kongPlugins(connectionContext);
     const {consumers, consumerDetails, consumersWithAuthentication, createOrUpdateConsumerWithCredentials,
-        removeConsumerWithCredentials} = kongConsumers(connectionContext);
+        removeConsumerWithCredentials, cleanConsumerWithCredentials} = kongConsumers(connectionContext);
 
     return {
         apis: {
@@ -26,7 +26,8 @@ module.exports = function kong(connectionContext) {
             consumerDetails: consumerDetails,
             allEnrichedConsumers: consumersWithAuthentication,
             createOrUpdateConsumerWithCredentials,
-            removeConsumerWithCredentials
+            removeConsumerWithCredentials,
+            cleanConsumerWithCredentials
         }
     };
 };
