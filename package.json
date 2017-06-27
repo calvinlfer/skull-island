@@ -6,6 +6,14 @@
   "bin": {
     "skull-island": "./bin/skull-island.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/calvinlfer/skull-island.git"
+  },
+  "keywords": [
+    "kong",
+    "config-management"
+  ],
   "author": "Calvin Fernandes",
   "license": "MIT",
   "dependencies": {
