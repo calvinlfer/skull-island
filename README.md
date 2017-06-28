@@ -1,9 +1,11 @@
 # Skull Island
+<img src="https://user-images.githubusercontent.com/14280155/27614840-3549c276-5b72-11e7-97e2-71ea760664d2.png" width=300 />
+
 Skull Island is a declarative configuration management tool for
 [Kong API Gateway](https://getkong.org/) to backup and synchronize Kong
 API Gateway configuration. We recommend using [Kong Dashboard](https://github.com/PGBI/kong-dashboard)
 to add routes through a UI and then using Skull Island to backup the
-configuration changes and later synchronize it.
+configuration changes and later synchronize it. Skull Island is inspired by [Kongfig](https://github.com/mybuilder/kongfig) and [Biplane](https://github.com/articulate/biplane).
 
 <h5>
     <span style="color:red">This is a work-in-progress, please use at your own risk</span>
