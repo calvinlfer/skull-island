@@ -100,6 +100,7 @@ cli.command('synchronize [filename]')
             const waitTimeInMs = 3000;
 
             const entityIdComparator = (aEntity, bEntity) => aEntity.id === bEntity.id;
+            const entityNameComparator = (aEntity, bEntity) => aEntity.name === bEntity.name;
 
             // detect and remove Consumers on the server that are not present on disk
             const consumersToDeleteFromServer = differenceWith(entityIdComparator, serverConsumers, diskConsumers);
@@ -125,8 +126,8 @@ cli.command('synchronize [filename]')
                 await delay(waitTimeInMs);
             }
 
-            // detect and remove APIs on the server that are not present on disk
-            const apisToDeleteFromServer = differenceWith(entityIdComparator, serverApis, diskApis);
+            // detect and remove APIs on the server that are not present on disk (based on API name)
+            const apisToDeleteFromServer = differenceWith(entityNameComparator, serverApis, diskApis);
             const apiIds = apisToDeleteFromServer.map(eachApi => eachApi.id);
             if (apiIds.length > 0) {
                 console.log(JSON.stringify(apiIds).red);
