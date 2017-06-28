@@ -1,5 +1,5 @@
 "use strict";
-const {prop, assoc} = require('ramda');
+const {prop, merge} = require('ramda');
 
 module.exports = function kongApis(connectionContext) {
     const {retrievalAdminRequest, createOrUpdateAdminRequest, deleteAdminRequest} = connectionContext;
@@ -23,7 +23,11 @@ module.exports = function kongApis(connectionContext) {
               if (!apiDataFromServer) {
                 return createOrUpdateAdminRequest('apis', apiData);
               } else {
-                const updatedApiData = assoc('id', apiDataFromServer.id, apiData);
+                // the API exists on the server, inject the id and created_at (mandatory) fields into the disk API data
+                const updatedApiData = merge(
+                  {'id': apiDataFromServer.id, 'created_at': apiDataFromServer.created_at},
+                  apiData
+                );
                 return createOrUpdateAdminRequest('apis', updatedApiData);
               }
             } else {
