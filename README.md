@@ -70,6 +70,10 @@ is running on port `8001`. You can find additional parameters using
 the synchronization process must exist in the current directory and is
 expected to be called `kong-backup.json`.
 
+`upstream_url` field is a Kong URL required field, if the `kong-backup.json` file has some
+endpoints without proper `upstream_url` field that specific endpoint will be
+skiped and the script won't fail during synchronization process.
+
 ### Teardown
 In order to wipe a Kong API Gateway clean of entities (APIs, Plugins,
 Consumers, and Consumer Credentials), use the `teardown` command:
@@ -155,7 +159,3 @@ update the server with the data from the file to avoid complications)
 and if you find differences, then delete the one on the server and
 upload the new one. You could actually do this process blindly
 (delete then add).
-
-
-
-
