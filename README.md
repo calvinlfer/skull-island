@@ -37,8 +37,8 @@ As part of the workflow, you might introduce
 to minimize duplication for Skull-Island backups especially when you
 need to deploy your changes to multiple environments. `upstream_url`
 field is a Kong URL required field. if the `kong-backup.json` file has
-some endpoints without proper `upstream_url` field that specific
-endpoint will be skipped and the script won't fail during synchronization
+some endpoints without proper `upstream_url` field then those specific
+endpoints will be skipped and the script won't fail during synchronization
 process. This decision was taken because some environments may have more
 APIs defined when compared to other environments.
 
