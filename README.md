@@ -31,6 +31,17 @@ deleted. For now, all Consumer Credentials (except basic-authentication
 unless specified) are removed from the server completely and then
 synchronized from disk resulting in slight downtime.
 
+### `upstream_url` for API Entities
+As part of the workflow, you might introduce
+[`fill-in-the-blanks`](https://github.com/calvinlfer/fill-in-the-blanks),
+to minimize duplication for Skull-Island backups especially when you
+need to deploy your changes to multiple environments. `upstream_url`
+field is a Kong URL required field. if the `kong-backup.json` file has
+some endpoints without proper `upstream_url` field that specific
+endpoint will be skipped and the script won't fail during synchronization
+process. This decision was taken because some environments may have more
+APIs defined when compared to other environments.
+
 ## Installation
 This application is meant to be used as a command line tool.
 You can install the latest version globally:
@@ -69,10 +80,6 @@ is running on port `8001`. You can find additional parameters using
 `skull-island synchronize -h`. The default backup file that is used for
 the synchronization process must exist in the current directory and is
 expected to be called `kong-backup.json`.
-
-`upstream_url` field is a Kong URL required field, if the `kong-backup.json` file has some
-endpoints without proper `upstream_url` field that specific endpoint will be
-skiped and the script won't fail during synchronization process.
 
 ### Teardown
 In order to wipe a Kong API Gateway clean of entities (APIs, Plugins,
