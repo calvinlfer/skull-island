@@ -7,7 +7,7 @@ const cli = require('commander');
 const colors = require('colors');
 const {promisify} = require('util');
 const readFile = promisify(fs.readFile);
-const {is, differenceWith}= require('ramda');
+const {is, differenceWith, filter}= require('ramda');
 const {version} = require('../package.json');
 const kongContext = require('../kong/context');
 const kongApi = require('../kong/index');
@@ -22,6 +22,10 @@ function checkValidFlagsAndFailFast(url, username, password) {
         console.log('Please specify both the username (-u) and the password (-p) to enable Basic Authentication'.yellow);
         process.exit(2);
     }
+}
+
+function apiHasValidUrl(apiObject) {
+  return apiObject.upstream_url.startsWith('http');
 }
 
 cli.version(version)
@@ -87,9 +91,18 @@ cli.command('synchronize [filename]')
             // from disk
             const backupString = await readFile(adjustedFileName, {encoding: 'utf8'});
             const backupData = JSON.parse(backupString);
-            const diskApis = backupData.apis;
+            const unfilteredDiskApis = backupData.apis;
+            const diskApis = filter(apiHasValidUrl, unfilteredDiskApis);
+            const badDiskApis = filter(api => !apiHasValidUrl(api), unfilteredDiskApis);
             const diskPlugins = backupData.plugins;
             const diskConsumers = backupData.consumers;
+
+            // report APIs that are missing an upstream url
+            if (badDiskApis.length > 0) {
+              console.log('The following APIs do not have upstream_urls and are filtered out'.red);
+              console.log(badDiskApis.map(badApi => badApi.name));
+              console.log();
+            }
 
             // from server
             const serverApis = await kong.apis.allApis();
