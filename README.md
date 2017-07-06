@@ -101,7 +101,10 @@ docker-compose up
 ```
 
 You can add a `-d` flag if you want to run it in the background and not
-have the logs pollute your terminal.
+have the logs pollute your terminal. You can use Kong Dashboard via
+`http://localhost:8080` and use `http://kong-api-gateway:8001` as the
+Kong node URL since Kong-Dashboard is running inside a Docker
+container so we make use of Container Name DNS resolution.
 
 Once you are finished, and want to clean up, use
 ```
