@@ -1,20 +1,23 @@
 version: '2'
 
 services:
-  cassandra:
-    image: cassandra:3
-    container_name: cassandra-database
+  postgres:
+    image: postgres:9.4
+    environment:
+      - "POSTGRES_USER=kong"
+      - "POSTGRES_DB=kong"
+    container_name: postgres-db
 
   kong:
     image: kong:0.10.3
-    # Cassandra takes a while to initialize so Kong will error out, ensure it restarts so that when Cassandra is ready
-    # then Kong will also be up and ready to take requests
+    # The database takes a while to initialize so Kong will error out, ensure it restarts so that when the database is
+    # ready then Kong will also be up and ready to take requests
     restart: always
     container_name: kong-api-gateway
     # make use of the container-name DNS to reference the database
     environment:
-      - "KONG_DATABASE=cassandra"
-      - "KONG_CASSANDRA_CONTACT_POINTS=cassandra-database"
+      - "KONG_DATABASE=postgres"
+      - "KONG_PG_HOST=postgres-db"
     ports:
       - "8000:8000"
       - "8443:8443"
@@ -22,4 +25,11 @@ services:
       - "7946:7946"
       - "7946:7946/udp"
     depends_on:
-      - "cassandra"
+      - "postgres"
+
+  kong-dashboard:
+    image: pgbi/kong-dashboard:latest
+    ports:
+      - "8080:8080"
+    depends_on:
+      - "kong"
