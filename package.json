@@ -18,7 +18,7 @@
   "license": "MIT",
   "dependencies": {
     "colors": "^1.1.2",
-    "commander": "^2.10.0",
+    "commander": "^2.11.0",
     "ramda": "^0.24.1",
     "request": "^2.81.0",
     "request-promise-native": "^1.0.4"

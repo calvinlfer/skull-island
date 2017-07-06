@@ -17,7 +17,6 @@ module.exports = function kongApis(connectionContext) {
             // if a user manually edits the configuration JSON and does not provide an ID, then attempt
             // a synchronization by looking at the server and obtaining the APIs ID from there
             if (!apiData.id) {
-              // if the API data does not exist on the server
               const apiDataFromServer = await api(apiData.name).catch(_ => undefined);
               // the API does not even exist on the server
               if (!apiDataFromServer) {
