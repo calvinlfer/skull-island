@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const {dissoc, prop, merge} = require('ramda');
 

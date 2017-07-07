@@ -19,7 +19,7 @@ module.exports = async function backup(filename, url, username, password) {
     const consumers = await kong.consumers.allEnrichedConsumers();
     const certificates = await kong.certificates.allCertificates();
     const certificatesWithoutSNIs = certificates.map(certificate => dissoc('snis', certificate));
-
+    const snis = await kong.snis.allSNIs();
 
     // create certificates directory if it doesn't already exist
     if (!fs.existsSync('certificates')) {
@@ -43,7 +43,8 @@ module.exports = async function backup(filename, url, username, password) {
       apis,
       plugins,
       consumers,
-      certificates: modifiedCertificates
+      certificates: modifiedCertificates,
+      snis
     };
 
     // TODO: implement the backup process for SNIs

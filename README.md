@@ -42,6 +42,35 @@ endpoints will be skipped and the script won't fail during synchronization
 process. This decision was taken because some environments may have more
 APIs defined when compared to other environments.
 
+### Certificate backups
+Certificate backups are supported but follow a different convention. By
+default, Kong places the public and private key data directly in the
+JSON response. For example:
+```json
+{
+    "created_at": 1485521710000,
+    "cert": "public-key1",
+    "key": "private-key1",
+    "id": "0e06dee7-ddba-4398-87b9-134944b0aa91"
+}
+```
+
+Our convention is to refer to file paths for certificates:
+```json
+{
+    "id": "0e06dee7-ddba-4398-87b9-134944b0aa91",
+    "created_at": 1485521710000,
+    "cert_path": "certificates/0e06dee7-ddba-4398-87b9-134944b0aa91.pub.pem",
+    "key_path": "certificates/0e06dee7-ddba-4398-87b9-134944b0aa91.pem"
+}
+```
+
+In the example above, we create `pem` files and refer to them via
+relative file paths (so they will materialize in your current directory
+in the certificates folder). `cert_path` corresponds to your public key
+and `key_path` corresponds to your private key. Both keys are PEM
+encoded.
+
 ## Installation
 This application is meant to be used as a command line tool.
 You can install the latest version globally:
