@@ -4,8 +4,8 @@ const colors = require('colors');
 const {promisify} = require('util');
 const readFile = promisify(fs.readFile);
 const {differenceWith, filter}= require('ramda');
-const kongContext = require('../kong/context');
-const kongApi = require('../kong/index');
+const kongContext = require('../../kong/context');
+const kongApi = require('../../kong/index');
 
 module.exports = async function synchronization(filename, url, username, password, synchBasicAuthCreds) {
   function apiHasValidUrl(apiObject) {

@@ -6,9 +6,9 @@ const fs = require('fs');
 const cli = require('commander');
 const colors = require('colors');
 const {version} = require('../package.json');
-const backup = require('./backup');
-const teardown = require('./teardown');
-const synchronization = require('./synchronization');
+const backup = require('./operations/backup');
+const teardown = require('./operations/teardown');
+const synchronization = require('./operations/synchronization');
 
 function checkValidFlagsAndFailFast(url, username, password) {
     if (!url) {
