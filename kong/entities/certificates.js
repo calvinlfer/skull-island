@@ -1,6 +1,6 @@
 "use strict";
 
-const {dissoc, prop} = require('ramda');
+const {dissoc, prop, merge} = require('ramda');
 
 module.exports = function kongCertificates(connectionContext) {
   const {retrievalAdminRequest, createOrUpdateAdminRequest, deleteAdminRequest} = connectionContext;
@@ -11,7 +11,14 @@ module.exports = function kongCertificates(connectionContext) {
 
   async function createOrUpdateCertificate(certData) {
     async function updateCertificate(certificateData) {
-      return createOrUpdateAdminRequest('certificates', certificateData);
+      let updatedCertificateData = certificateData;
+      if (!certificateData.created_at) {
+        // add a created_at time if the user has not specified one
+        const millis = (new Date).getTime();
+        updatedCertificateData = merge({created_at: millis}, certificateData);
+      }
+
+      return createOrUpdateAdminRequest('certificates', updatedCertificateData);
     }
 
     function createCertificate(certificateData) {
