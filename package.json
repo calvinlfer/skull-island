@@ -6,6 +6,25 @@
   "bin": {
     "skull-island": "./bin/skull-island.js"
   },
+  "scripts": {
+    "lint": "gulp lint",
+    "test": "gulp test"
+  },
+  "releaseme": {
+    "steps": [
+      "checkStatus",
+      "lint",
+      "test",
+      "setReleaseVersion",
+      "commitReleaseVersion",
+      "tagRelease",
+      "publish",
+      "setNextVersion",
+      "commitNextVersion",
+      "pushChanges"
+    ],
+    "releaseme-plugin-information": "https://github.com/ukayani/releaseme#default-release-process"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/calvinlfer/skull-island.git"
