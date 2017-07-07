@@ -82,6 +82,9 @@ module.exports = async function synchronization(filename, url, username, passwor
       await delay(waitTimeInMs);
     }
 
+    // TODO: detect and remove certificates on the server that are not present on disk
+    // TODO: figure out whether to use uuidv3 to allow a user to use `name` fields which we turn into UUID v3 `id`s before interacting with Kong to make it easier for a user to identify certificates
+
     // At this point all extra server entities have been removed, now we update all entities from the disk into the server
     console.log('Updating APIs'.bold);
     diskApis.map(async eachApi => await kong.apis.createOrUpdateApi(eachApi));
@@ -120,6 +123,9 @@ module.exports = async function synchronization(filename, url, username, passwor
     }
 
     console.log('Consumer and Credentials updates complete'.green);
+
+    // TODO: Update Certificates and SNIs here: this would involve reading certificates from files and replacing them inside their objects and then uploading that new JSON object
+
     console.log('Synchronization process complete'.green.bold);
   } catch (e) {
     console.log(e.message.red);

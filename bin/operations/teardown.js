@@ -23,6 +23,8 @@ module.exports = async function teardown(url, username, password) {
     const apiNames = apis.map(eachApi => eachApi.name);
     apiNames.map(async name => await kong.apis.removeApi(name).catch(err => console.log(err.message.grey)));
     console.log('API deletion complete'.red.reset);
+
+    // TODO: implement teardown of SNIs and then Certificates
   } catch (e) {
     console.log(e.message.red)
   } finally {

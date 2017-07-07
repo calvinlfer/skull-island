@@ -142,7 +142,8 @@ expose ports over to the host network to access the admin and proxy APIs
 ### Notes
 To my understanding, the dependency graph can be visualized like this:
 
-`Consumer`s -depend on-> `Plugin`s -depend on-> `API`s
+- `Consumer`s -depend on-> `Plugin`s -depend on-> `API`s
+- `SNI`s -depend-on-> `Certificate`s
 
 
 There are global `Plugin`s which have no dependency on `API`s like `Syslog`.
