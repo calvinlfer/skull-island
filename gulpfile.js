@@ -6,7 +6,7 @@ const gutil = require('gulp-util');
 const eslint = require('gulp-eslint');
 
 const sourceFiles = ['lib/**/*.js', 'bin/**/*.js'];
-const testSourceFiles = ['test/**/**.spec.js'];
+const testSourceFiles = ['test/**/*.spec.js'];
 const allSourceFiles = sourceFiles.concat(testSourceFiles);
 
 gulp.task('test', () =>
