@@ -11,7 +11,7 @@ const allSourceFiles = sourceFiles.concat(testSourceFiles);
 
 gulp.task('test', () =>
   gulp.src(testSourceFiles)
-    .pipe(mocha())
+    .pipe(mocha({ reporter: 'spec', timeout: 30000 }))
     .on('error', gutil.log)
 );
 

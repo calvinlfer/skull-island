@@ -5,6 +5,6 @@ const expect = chai.expect;
 
 describe('Kong API Object Specification', () => {
   it('must be able to create an API', () => {
-    expect(1).to.equal(1);
+    expect(10).to.equal(10);
   });
 });

@@ -44,7 +44,6 @@
     },
     "devDependencies": {
         "chai": "^4.0.2",
-        "docker-compose-mocha": "^1.0.11",
         "gulp": "^3.9.1",
         "gulp-eslint": "^4.0.0",
         "gulp-mocha": "^4.3.1",
