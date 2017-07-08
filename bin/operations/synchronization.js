@@ -4,8 +4,8 @@ const colors = require('colors');
 const {promisify} = require('util');
 const readFile = promisify(fs.readFile);
 const {differenceWith, filter}= require('ramda');
-const kongContext = require('../../kong/context');
-const kongApi = require('../../kong/index');
+const kongContext = require('../../lib/kong/context');
+const kongApi = require('../../lib/kong/index');
 
 module.exports = async function synchronization(filename, url, username, password, synchBasicAuthCreds) {
   function apiHasValidUrl(apiObject) {
@@ -46,7 +46,7 @@ module.exports = async function synchronization(filename, url, username, passwor
     const serverSNIs = await kong.snis.allSNIs();
     const serverCertificates = await kong.certificates.allCertificates();
 
-    const delay = millis => new Promise(resolve => setTimeout(_ => resolve(), millis));
+    const delay = millis => new Promise(resolve => setTimeout(() => resolve(), millis));
     const waitTimeInMs = 3000;
 
     const entityIdComparator = (aEntity, bEntity) => aEntity.id === bEntity.id;

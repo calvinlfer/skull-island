@@ -2,8 +2,8 @@
 const fs = require('fs');
 const {dissoc, merge, compose} = require('ramda');
 const colors = require('colors');
-const kongContext = require('../../kong/context');
-const kongApi = require('../../kong/index');
+const kongContext = require('../../lib/kong/context');
+const kongApi = require('../../lib/kong/index');
 
 module.exports = async function backup(filename, url, username, password) {
   let adjustedFileName = 'kong-backup.json';

@@ -52,14 +52,16 @@
       }
     ],
     "no-inline-comments": 2,
-    "space-before-blocks": 2
+    "space-before-blocks": 2,
+    "no-unused-vars": ["error", { "varsIgnorePattern": "colors" }]
   },
   "env": {
     "es6": true,
-    "node": true
+    "node": true,
+    "mocha": true
   },
   "parserOptions": {
-    "ecmaVersion": 8
+    "ecmaVersion": 2017
   },
-  "extends": "eslint:recommended"
+  "extends": ["eslint:recommended"]
 }

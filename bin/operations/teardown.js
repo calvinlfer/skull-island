@@ -1,8 +1,8 @@
 'use strict';
 
 const colors = require('colors');
-const kongContext = require('../../kong/context');
-const kongApi = require('../../kong/index');
+const kongContext = require('../../lib/kong/context');
+const kongApi = require('../../lib/kong/index');
 
 module.exports = async function teardown(url, username, password) {
   try {
