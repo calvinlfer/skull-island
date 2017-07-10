@@ -45,7 +45,7 @@ describe('Kong API Object Specification', () => {
     expect(updatedResult).to.be.empty;
   });
 
-  it("it should be able to list all created APIs", async () => {
+  it('must be able to list all created APIs', async () => {
     const context = kongContext('', '', localKongHost);
     const kong = kongApi(context);
     const apiNameA = 'example-api-1a';
