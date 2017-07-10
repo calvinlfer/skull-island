@@ -71,7 +71,7 @@ describe('Kong Certificate and SNI Object Specification', () => {
     expect(results).to.be.lengthOf(2);
     const sortedResults = results.sort();
     const sniNames = sortedResults.map(sni => sni.name);
-    expect(sniNames).to.eql([sniNameA, sniNameB].sort());
+    expect(sniNames.sort()).to.eql([sniNameA, sniNameB].sort());
     sortedResults.forEach(sni => expect(sni.ssl_certificate_id).to.be.equal(certificateId));
   });
 
