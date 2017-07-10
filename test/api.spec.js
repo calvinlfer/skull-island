@@ -45,6 +45,32 @@ describe('Kong API Object Specification', () => {
     expect(updatedResult).to.be.empty;
   });
 
+  it("it should be able to list all created APIs", async () => {
+    const context = kongContext('', '', localKongHost);
+    const kong = kongApi(context);
+    const apiNameA = 'example-api-1a';
+    const uriPathA = '/test';
+    const upstreamUrlA = 'https://www.github.com';
+    await kong.apis.createOrUpdateApi({
+      name: apiNameA,
+      uris: [uriPathA],
+      upstream_url: upstreamUrlA
+    });
+
+    const apiNameB = 'example-api-1b';
+    const uriPathB = '/test';
+    const upstreamUrlB = 'https://www.github.com';
+    await kong.apis.createOrUpdateApi({
+      name: apiNameB,
+      uris: [uriPathB],
+      upstream_url: upstreamUrlB
+    });
+
+    const results = await kong.apis.allApis();
+    const sortedApiNames = results.map(api => api.name).sort();
+    expect(sortedApiNames).to.be.eql([apiNameA, apiNameB]);
+  });
+
   afterEach(async () => {
     // clean up all entities
     const context = kongContext('', '', localKongHost);
