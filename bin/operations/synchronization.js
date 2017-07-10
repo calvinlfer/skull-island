@@ -4,8 +4,8 @@ const colors = require('colors');
 const {promisify} = require('util');
 const readFile = promisify(fs.readFile);
 const {differenceWith, filter}= require('ramda');
-const kongContext = require('../../kong/context');
-const kongApi = require('../../kong/index');
+const kongContext = require('../../lib/kong/context');
+const kongApi = require('../../lib/kong/index');
 
 module.exports = async function synchronization(filename, url, username, password, synchBasicAuthCreds) {
   function apiHasValidUrl(apiObject) {
@@ -29,6 +29,8 @@ module.exports = async function synchronization(filename, url, username, passwor
     const badDiskApis = filter(api => !apiHasValidUrl(api), unfilteredDiskApis);
     const diskPlugins = backupData.plugins;
     const diskConsumers = backupData.consumers;
+    const diskSNIs = backupData.snis;
+    const diskCertificates = backupData.certificates;
 
     // report APIs that are missing an upstream url
     if (badDiskApis.length > 0) {
@@ -41,8 +43,10 @@ module.exports = async function synchronization(filename, url, username, passwor
     const serverApis = await kong.apis.allApis();
     const serverPlugins = await kong.plugins.allPlugins();
     const serverConsumers = await kong.consumers.allEnrichedConsumers();
+    const serverSNIs = await kong.snis.allSNIs();
+    const serverCertificates = await kong.certificates.allCertificates();
 
-    const delay = millis => new Promise(resolve => setTimeout(_ => resolve(), millis));
+    const delay = millis => new Promise(resolve => setTimeout(() => resolve(), millis));
     const waitTimeInMs = 3000;
 
     const entityIdComparator = (aEntity, bEntity) => aEntity.id === bEntity.id;
@@ -81,6 +85,58 @@ module.exports = async function synchronization(filename, url, username, passwor
       console.log('Extra APIs on server have been deleted'.blue);
       await delay(waitTimeInMs);
     }
+
+    // detect and remove SNIs and then certificates on the server that are not present on disk
+    const snisToDeleteFromServer = differenceWith(entityNameComparator, serverSNIs, diskSNIs);
+    if (snisToDeleteFromServer.length > 0) {
+      const sniNames = snisToDeleteFromServer.map(sni => sni.name);
+      console.log(JSON.stringify(sniNames).red);
+      sniNames.forEach(async name =>
+        await kong.snis.removeSNI(name).catch(err => console.log(`error removing SNI (${name})`, err.message.data))
+      );
+      console.log('Extra SNIs on server have been deleted'.blue);
+      await delay(waitTimeInMs);
+    }
+
+    const certificatesToDeleteFromServer = differenceWith(entityIdComparator, serverCertificates, diskCertificates);
+    if (certificatesToDeleteFromServer.length > 0) {
+      const certificateIds = certificatesToDeleteFromServer.map(cert => cert.id);
+      console.log(JSON.stringify(certificateIds).red);
+      certificateIds.forEach(async id =>
+        await kong.certificates.removeCertificate(id).catch(err => console.log(`error removing Certificate (${id})`, err.message.data))
+      );
+      console.log('Extra Certificates on server have been deleted'.blue);
+    }
+
+    // Upload new certificates
+    console.log('Updating certificates'.bold);
+    const adjustedKongCertificates = diskCertificates.map(async certificate => {
+      const certificateId = certificate.id;
+      const createdAt = certificate.created_at;
+      const privateKeyPath = certificate.key_path;
+      const publicKeyPath = certificate.cert_path;
+      const privateKey = await readFile(privateKeyPath, {encoding: 'utf8'});
+      const publicKey = await readFile(publicKeyPath, {encoding: 'utf8'});
+      return {
+        id: certificateId,
+        created_at: createdAt,
+        cert: publicKey,
+        key: privateKey
+      };
+    });
+    const kongCertificatesToUpload = await Promise.all(adjustedKongCertificates);
+    kongCertificatesToUpload.map(async certificate => await kong.certificates.createOrUpdateCertificate(certificate));
+    console.log('Certificate updates complete'.green);
+
+    // Upload new SNIs
+    console.log('Updating SNIs'.bold);
+    diskSNIs.map(async sni =>
+      await kong.snis.createOrUpdateSNI(sni).catch(err => {
+        if (err.statusCode !== 409) console.log(`Error adding SNI`, err.message);
+      })
+    );
+    console.log('SNI updates complete'.green);
+    await delay(waitTimeInMs);
 
     // At this point all extra server entities have been removed, now we update all entities from the disk into the server
     console.log('Updating APIs'.bold);

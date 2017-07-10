@@ -2,7 +2,6 @@
 
 'use strict';
 
-const fs = require('fs');
 const cli = require('commander');
 const colors = require('colors');
 const {version} = require('../package.json');
