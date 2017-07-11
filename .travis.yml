@@ -1,0 +1,16 @@
+language: node_js
+
+node_js:
+ - 8.1.3
+
+sudo: required
+
+services:
+- docker
+
+before_script:
+- docker-compose up
+- npm install -g gulp
+
+script:
+- gulp default
