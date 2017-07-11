@@ -7,7 +7,6 @@ sudo: required
 
 services:
 - docker
-
 before_script:
 - docker-compose up
 - npm install -g gulp
