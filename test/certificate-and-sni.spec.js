@@ -6,7 +6,7 @@ const kongContext = require('../lib/kong/context');
 const kongApi = require('../lib/kong/index');
 const localKongHost = 'http://127.0.0.1:8001';
 const delay = millis => new Promise(resolve => setTimeout(() => resolve(), millis));
-const DelayTime = 100;
+const DelayTime = 250;
 
 describe('Kong Certificate and SNI Object Specification', () => {
   it('must be able to create a certificate and list all certificates', async () => {

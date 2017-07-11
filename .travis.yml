@@ -10,7 +10,7 @@ services:
 
 before_script:
 - docker-compose up -d
-- sleep 30
+- sleep 40
 - npm install -g gulp
 
 script:
