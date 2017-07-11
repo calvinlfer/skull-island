@@ -7,9 +7,111 @@ API Gateway configuration. We recommend using [Kong Dashboard](https://github.co
 to add routes through a UI and then using Skull Island to backup the
 configuration changes and later synchronize it. Skull Island is inspired by [Kongfig](https://github.com/mybuilder/kongfig) and [Biplane](https://github.com/articulate/biplane).
 
-<h5>
-    <span style="color:red">This is a work-in-progress, please use at your own risk</span>
-</h5>
+## Installation
+This application is meant to be used as a command line tool.
+You can install the latest version globally:
+```bash
+npm install -g skull-island
+```
+
+If you have an older version and need to upgrade to the latest version:
+```bash
+npm upgrade -g skull-island
+```
+
+## Running the application
+
+### Backup
+In order to backup a running Kong API gateway configuration to disk, use
+the `backup` command:
+```bash
+skull-island backup --url http://127.0.0.1:8001
+```
+
+Kong API Gateway is running on `127.0.0.1` and the administration port
+is running on port `8001`. You can find additional parameters using
+`skull-island backup -h`. The default backup file is generated in the
+current directory called `kong-backup.json`.
+
+### Synchronization
+In order to synchronize a configuration on disk to a running Kong API
+Gateway, use the `synchronize` command:
+```bash
+skull-island synchronize --url http://127.0.0.1:8001
+```
+
+Kong API Gateway is running on `127.0.0.1` and the administration port
+is running on port `8001`. You can find additional parameters using
+`skull-island synchronize -h`. The default backup file that is used for
+the synchronization process must exist in the current directory and is
+expected to be called `kong-backup.json`.
+
+### Teardown
+In order to wipe a Kong API Gateway clean of entities (APIs, Plugins,
+Consumers, and Consumer Credentials), use the `teardown` command:
+```bash
+skull-island teardown --url http://127.0.0.1:8001
+```
+
+Kong API Gateway is running on `127.0.0.1` and the administration port
+is running on port `8001`.
+
+## Building out a Kong API gateway environment to do local testing
+Ensure you have the latest version of Docker running:
+
+### Docker Compose
+To bring up Cassandra and the Kong API Gateway, use
+```
+docker-compose up
+```
+
+You can add a `-d` flag if you want to run it in the background and not
+have the logs pollute your terminal. You can use Kong Dashboard via
+`http://localhost:8080` and use `http://kong-api-gateway:8001` as the
+Kong node URL since Kong-Dashboard is running inside a Docker
+container so we make use of Container Name DNS resolution.
+
+Once you are finished, and want to clean up, use
+```
+docker-compose down
+```
+
+### Just Docker
+1. create a virtual Docker network that will host Kong and Cassandra so
+they may communicate with each other
+
+    ```
+    docker network create kong-network
+    ```
+
+2. create the Cassandra Docker container on the `kong-network`
+
+    ```
+    docker run -d --name kong-database --network kong-network cassandra:3
+    ```
+
+3. create the Kong API Gateway Docker container on the `kong-network` and
+expose ports over to the host network to access the admin and proxy APIs
+
+    ```
+    docker run -d --name kong --network kong-network -e "KONG_DATABASE=cassandra"
+      -e "KONG_CASSANDRA_CONTACT_POINTS=kong-database"
+      -p 8000:8000
+      -p 8443:8443
+      -p 8001:8001
+      -p 7946:7946
+      -p 7946:7946/udp
+      kong:latest
+    ```
+
+## Integration tests
+In order to run tests, you need to start up Kong locally by following
+the Docker Compose instructions and run: `docker-compose up`
+
+Once the services are up, you can run integration tests by executing:
+`gulp test`
+
+Please note, you will need to install `gulp` globally to do this.
 
 ## Caveats and Design Decisions
 Kong's `basic-auth` consumer credentials currently cannot be backed up
@@ -70,103 +172,6 @@ relative file paths (so they will materialize in your current directory
 in the certificates folder). `cert_path` corresponds to your public key
 and `key_path` corresponds to your private key. Both keys are PEM
 encoded.
-
-## Installation
-This application is meant to be used as a command line tool.
-You can install the latest version globally:
-```bash
-npm install -g skull-island
-```
-
-If you have an older version and need to upgrade to the latest version:
-```bash
-npm upgrade -g skull-island
-```
-
-## Running the application
-
-### Backup
-In order to backup a running Kong API gateway configuration to disk, use
-the `backup` command:
-```bash
-skull-island backup --url http://127.0.0.1:8001
-```
-
-Kong API Gateway is running on `127.0.0.1` and the administration port
-is running on port `8001`. You can find additional parameters using
-`skull-island backup -h`. The default backup file is generated in the
-current directory called `kong-backup.json`.
-
-### Synchronization
-In order to synchronize a configuration on disk to a running Kong API
-Gateway, use the `synchronize` command:
-```bash
-skull-island synchronize --url http://127.0.0.1:8001
-```
-
-Kong API Gateway is running on `127.0.0.1` and the administration port
-is running on port `8001`. You can find additional parameters using
-`skull-island synchronize -h`. The default backup file that is used for
-the synchronization process must exist in the current directory and is
-expected to be called `kong-backup.json`.
-
-### Teardown
-In order to wipe a Kong API Gateway clean of entities (APIs, Plugins,
-Consumers, and Consumer Credentials), use the `teardown` command:
-```bash
-skull-island teardown --url http://127.0.0.1:8001
-```
-
-Kong API Gateway is running on `127.0.0.1` and the administration port
-is running on port `8001`.
-
-## Building out a Kong API gateway environment for testing
-Ensure you have the latest version of Docker running:
-
-### Docker Compose
-To bring up Cassandra and the Kong API Gateway, use
-```
-docker-compose up
-```
-
-You can add a `-d` flag if you want to run it in the background and not
-have the logs pollute your terminal. You can use Kong Dashboard via
-`http://localhost:8080` and use `http://kong-api-gateway:8001` as the
-Kong node URL since Kong-Dashboard is running inside a Docker
-container so we make use of Container Name DNS resolution.
-
-Once you are finished, and want to clean up, use
-```
-docker-compose down
-```
-
-### Just Docker
-1. create a virtual Docker network that will host Kong and Cassandra so
-they may communicate with each other
-
-    ```
-    docker network create kong-network
-    ```
-
-2. create the Cassandra Docker container on the `kong-network`
-
-    ```
-    docker run -d --name kong-database --network kong-network cassandra:3
-    ```
-
-3. create the Kong API Gateway Docker container on the `kong-network` and
-expose ports over to the host network to access the admin and proxy APIs
-
-    ```
-    docker run -d --name kong --network kong-network -e "KONG_DATABASE=cassandra"
-      -e "KONG_CASSANDRA_CONTACT_POINTS=kong-database"
-      -p 8000:8000
-      -p 8443:8443
-      -p 8001:8001
-      -p 7946:7946
-      -p 7946:7946/udp
-      kong:latest
-    ```
 
 ### Notes
 To my understanding, the dependency graph can be visualized like this:
