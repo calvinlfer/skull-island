@@ -27,10 +27,10 @@ module.exports = async function synchronization(filename, url, username, passwor
     const unfilteredDiskApis = backupData.apis;
     const diskApis = filter(apiHasValidUrl, unfilteredDiskApis);
     const badDiskApis = filter(api => !apiHasValidUrl(api), unfilteredDiskApis);
-    const diskPlugins = backupData.plugins;
-    const diskConsumers = backupData.consumers;
-    const diskSNIs = backupData.snis;
-    const diskCertificates = backupData.certificates;
+    const diskPlugins = backupData.plugins || [];
+    const diskConsumers = backupData.consumers || [];
+    const diskSNIs = backupData.snis || [];
+    const diskCertificates = backupData.certificates || [];
 
     // report APIs that are missing an upstream url
     if (badDiskApis.length > 0) {
@@ -178,6 +178,7 @@ module.exports = async function synchronization(filename, url, username, passwor
     console.log('Consumer and Credentials updates complete'.green);
     console.log('Synchronization process complete'.green.bold);
   } catch (e) {
+    console.log(e);
     console.log(e.message.red);
   } finally {
     console.log(' '.reset);
