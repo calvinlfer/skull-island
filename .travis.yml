@@ -10,6 +10,7 @@ services:
 
 before_script:
 - docker-compose up -d
+- echo -e "\033[32mWaiting for Kong to stabilize..."
 - sleep 40
 - npm install -g gulp
 
