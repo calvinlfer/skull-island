@@ -173,6 +173,10 @@ in the certificates folder). `cert_path` corresponds to your public key
 and `key_path` corresponds to your private key. Both keys are PEM
 encoded.
 
+**Note:** If your certificate paths do not contain the certificates, the
+synchronization of these certificates will be skipped and a warning will
+be printed.
+
 ### Notes
 To my understanding, the dependency graph can be visualized like this:
 
