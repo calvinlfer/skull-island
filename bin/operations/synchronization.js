@@ -135,7 +135,8 @@ module.exports = async function synchronization(filename, url, username, passwor
     });
     const kongCertificatesToUpload = await Promise.all(adjustedKongCertificates);
     const filteredCertificatesToUpload = kongCertificatesToUpload.filter(certificateHasValidPublicAndPrivateKeys);
-    filteredCertificatesToUpload.map(async certificate => await kong.certificates.createOrUpdateCertificate(certificate));
+    const pendingCertResults = filteredCertificatesToUpload.map(async certificate => await kong.certificates.createOrUpdateCertificate(certificate));
+    await Promise.all(pendingCertResults);
     console.log('Certificate updates complete'.green);
 
     // Upload new SNIs
