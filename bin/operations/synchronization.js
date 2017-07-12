@@ -12,6 +12,10 @@ module.exports = async function synchronization(filename, url, username, passwor
     return apiObject.upstream_url.startsWith('http');
   }
 
+  function certificateHasValidPublicAndPrivateKeys(certificateObject) {
+    return certificateObject.key && certificateObject.cert
+  }
+
   let adjustedFileName = 'kong-backup.json';
   if (filename) {
     adjustedFileName = filename;
@@ -115,8 +119,13 @@ module.exports = async function synchronization(filename, url, username, passwor
       const createdAt = certificate.created_at;
       const privateKeyPath = certificate.key_path;
       const publicKeyPath = certificate.cert_path;
-      const privateKey = await readFile(privateKeyPath, {encoding: 'utf8'});
-      const publicKey = await readFile(publicKeyPath, {encoding: 'utf8'});
+      const privateKey = await readFile(privateKeyPath, {encoding: 'utf8'}).catch(() => undefined);
+      const publicKey = await readFile(publicKeyPath, {encoding: 'utf8'}).catch(() => undefined);
+
+      if (!privateKey || !publicKey) {
+        console.log(`WARNING: certificate path(s) does not contain certificate for: ${certificateId}, skipping...`.grey);
+      }
+
       return {
         id: certificateId,
         created_at: createdAt,
@@ -125,7 +134,8 @@ module.exports = async function synchronization(filename, url, username, passwor
       };
     });
     const kongCertificatesToUpload = await Promise.all(adjustedKongCertificates);
-    kongCertificatesToUpload.map(async certificate => await kong.certificates.createOrUpdateCertificate(certificate));
+    const filteredCertificatesToUpload = kongCertificatesToUpload.filter(certificateHasValidPublicAndPrivateKeys);
+    filteredCertificatesToUpload.map(async certificate => await kong.certificates.createOrUpdateCertificate(certificate));
     console.log('Certificate updates complete'.green);
 
     // Upload new SNIs
