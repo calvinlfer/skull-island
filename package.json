@@ -1,6 +1,6 @@
 {
     "name": "skull-island",
-    "version": "1.0.14-SNAPSHOT",
+    "version": "1.0.14",
     "description": "A tool for diffable Kong configuration",
     "main": "./kong/index.js",
     "bin": {
