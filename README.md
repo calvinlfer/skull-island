@@ -1,6 +1,8 @@
 # Skull Island
 <img src="https://user-images.githubusercontent.com/14280155/27614840-3549c276-5b72-11e7-97e2-71ea760664d2.png" width=300 />
 
+[![Build Status](https://travis-ci.org/calvinlfer/skull-island.svg?branch=master)](https://travis-ci.org/calvinlfer/skull-island)
+
 Skull Island is a declarative configuration management tool for
 [Kong API Gateway](https://getkong.org/) to backup and synchronize Kong
 API Gateway configuration. We recommend using [Kong Dashboard](https://github.com/PGBI/kong-dashboard)

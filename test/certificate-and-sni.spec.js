@@ -5,6 +5,8 @@ const expect = chai.expect;
 const kongContext = require('../lib/kong/context');
 const kongApi = require('../lib/kong/index');
 const localKongHost = 'http://127.0.0.1:8001';
+const delay = millis => new Promise(resolve => setTimeout(() => resolve(), millis));
+const DelayTime = 250;
 
 describe('Kong Certificate and SNI Object Specification', () => {
   it('must be able to create a certificate and list all certificates', async () => {
@@ -18,6 +20,7 @@ describe('Kong Certificate and SNI Object Specification', () => {
       cert: pubKey,
       key: privKey
     });
+    delay(DelayTime);
     const result = await kong.certificates.allCertificates();
     expect(result).to.be.lengthOf(1);
     const certificate = result[0];
@@ -37,7 +40,9 @@ describe('Kong Certificate and SNI Object Specification', () => {
       cert: pubKey,
       key: privKey
     });
+    delay(DelayTime);
     await kong.certificates.removeCertificate(certificateId);
+    delay(DelayTime);
     const result = await kong.certificates.allCertificates();
     expect(result).to.be.empty;
   });
@@ -56,6 +61,8 @@ describe('Kong Certificate and SNI Object Specification', () => {
     const sniNameA = "www.example.com";
     const sniNameB = "www.web.com";
 
+    delay(DelayTime);
+
     // SNI references the existing certificate
     await kong.snis.createOrUpdateSNI({
       name: sniNameA,
@@ -66,6 +73,8 @@ describe('Kong Certificate and SNI Object Specification', () => {
       name: sniNameB,
       ssl_certificate_id: certificateId
     });
+
+    delay(DelayTime);
 
     const results = await kong.snis.allSNIs();
     expect(results).to.be.lengthOf(2);

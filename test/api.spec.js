@@ -66,9 +66,19 @@ describe('Kong API Object Specification', () => {
       upstream_url: upstreamUrlB
     });
 
-    const results = await kong.apis.allApis();
+    const apiNameC = 'example-api-1c';
+    const uriPathC = '/test';
+    const upstreamUrlC = 'https://www.github.com';
+    await kong.apis.createOrUpdateApi({
+      name: apiNameC,
+      uris: [uriPathC],
+      upstream_url: upstreamUrlC
+    });
+
+    const batchSize = 1;
+    const results = await kong.apis.allApis(batchSize);
     const sortedApiNames = results.map(api => api.name).sort();
-    expect(sortedApiNames).to.be.eql([apiNameA, apiNameB]);
+    expect(sortedApiNames).to.be.eql([apiNameA, apiNameB, apiNameC]);
   });
 
   afterEach(async () => {
