@@ -61,9 +61,10 @@ module.exports = async function synchronization(filename, url, username, passwor
     const consumerIds = consumersToDeleteFromServer.map(eachConsumer => eachConsumer.id);
     if (consumerIds.length > 0) {
       console.log(JSON.stringify(consumerIds).red);
-      consumerIds
-        .map(async id => await kong.consumers.removeConsumerWithCredentials(id)
-          .catch(err => console.log(err.message.grey)));
+      const pendingDeletions = consumerIds.map(async id =>
+        await kong.consumers.removeConsumerWithCredentials(id).catch(err => console.log(err.message.grey))
+      );
+      await Promise.all(pendingDeletions);
       console.log('Extra consumers on server have been deleted'.blue);
       await delay(waitTimeInMs);
     }
@@ -73,10 +74,9 @@ module.exports = async function synchronization(filename, url, username, passwor
     const pluginIds = pluginsToDeleteFromServer.map(eachPlugin => eachPlugin.id);
     if (pluginIds.length > 0) {
       console.log(JSON.stringify(pluginIds).red);
-      pluginIds
-        .map(async id => await kong.plugins.removePlugin(id)
-          .catch(err => console.log(err.message.grey)));
+      const pendingDeletions = pluginIds.map(async id => await kong.plugins.removePlugin(id).catch(err => console.log(err.message.grey)));
       console.log('Extra plugins on server have been deleted'.blue);
+      await Promise.all(pendingDeletions);
       await delay(waitTimeInMs);
     }
 
@@ -85,8 +85,9 @@ module.exports = async function synchronization(filename, url, username, passwor
     const apiIds = apisToDeleteFromServer.map(eachApi => eachApi.id);
     if (apiIds.length > 0) {
       console.log(JSON.stringify(apiIds).red);
-      apiIds.map(async id => await kong.apis.removeApi(id).catch(err => console.log(err.message.grey)));
+      const pendingDeletions = apiIds.map(async id => await kong.apis.removeApi(id).catch(err => console.log(err.message.grey)));
       console.log('Extra APIs on server have been deleted'.blue);
+      await Promise.all(pendingDeletions);
       await delay(waitTimeInMs);
     }
 
@@ -95,9 +96,10 @@ module.exports = async function synchronization(filename, url, username, passwor
     if (snisToDeleteFromServer.length > 0) {
       const sniNames = snisToDeleteFromServer.map(sni => sni.name);
       console.log(JSON.stringify(sniNames).red);
-      sniNames.forEach(async name =>
+      const pendingDeletions = sniNames.forEach(async name =>
         await kong.snis.removeSNI(name).catch(err => console.log(`error removing SNI (${name})`, err.message.data))
       );
+      await Promise.all(pendingDeletions);
       console.log('Extra SNIs on server have been deleted'.blue);
       await delay(waitTimeInMs);
     }
@@ -106,9 +108,10 @@ module.exports = async function synchronization(filename, url, username, passwor
     if (certificatesToDeleteFromServer.length > 0) {
       const certificateIds = certificatesToDeleteFromServer.map(cert => cert.id);
       console.log(JSON.stringify(certificateIds).red);
-      certificateIds.forEach(async id =>
+      const pendingDeletion = certificateIds.forEach(async id =>
         await kong.certificates.removeCertificate(id).catch(err => console.log(`error removing Certificate (${id})`, err.message.data))
       );
+      await pendingDeletion;
       console.log('Extra Certificates on server have been deleted'.blue);
     }
 
@@ -151,13 +154,15 @@ module.exports = async function synchronization(filename, url, username, passwor
 
     // At this point all extra server entities have been removed, now we update all entities from the disk into the server
     console.log('Updating APIs'.bold);
-    diskApis.map(async eachApi => await kong.apis.createOrUpdateApi(eachApi));
+    const pendingAPICreations = diskApis.map(async eachApi => await kong.apis.createOrUpdateApi(eachApi));
+    await Promise.all(pendingAPICreations);
     console.log('API updates complete'.green);
 
     await delay(waitTimeInMs);
 
     console.log('Updating Plugins'.bold);
-    diskPlugins.map(async eachPlugin => await kong.plugins.createOrUpdatePlugin(eachPlugin));
+    const pendingPluginCreations = diskPlugins.map(async eachPlugin => await kong.plugins.createOrUpdatePlugin(eachPlugin));
+    await Promise.all(pendingPluginCreations);
     console.log('Plugin updates complete'.green);
 
     await delay(waitTimeInMs);
@@ -165,17 +170,17 @@ module.exports = async function synchronization(filename, url, username, passwor
     console.log('Updating Consumers and Credentials'.bold);
     if (synchBasicAuthCreds) {
       console.log('WARNING: Synchronizing all consumer credentials including basic authentication');
-      diskConsumers.map(async eachConsumer => {
+      const pendingConsumerSynchronizations = diskConsumers.map(async eachConsumer => {
         await kong.consumers.removeConsumerWithCredentials(eachConsumer.id).catch(err => {
           console.log(`Could not execute entity request: ${err.options.method} ${err.options.url}`.grey);
           console.log('Reason: ' + err.error.message.grey);
         });
-
         await delay(500);
         return await kong.consumers.createOrUpdateConsumerWithCredentials(eachConsumer, synchBasicAuthCreds)
       });
+      await Promise.all(pendingConsumerSynchronizations);
     } else {
-      diskConsumers.map(async eachConsumer => {
+      const pendingConsumerSynchronizations = diskConsumers.map(async eachConsumer => {
         await kong.consumers.cleanConsumerWithCredentials(eachConsumer.id).catch(err => {
           console.log(`Could not execute entity request: ${err.options.method} ${err.options.url}`.grey);
           console.log('Reason: ' + err.error.message.grey);
@@ -184,6 +189,7 @@ module.exports = async function synchronization(filename, url, username, passwor
         await delay(500);
         return await kong.consumers.createOrUpdateConsumerWithCredentials(eachConsumer, synchBasicAuthCreds)
       });
+      await Promise.all(pendingConsumerSynchronizations);
     }
 
     console.log('Consumer and Credentials updates complete'.green);
