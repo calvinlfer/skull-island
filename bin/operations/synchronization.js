@@ -108,10 +108,10 @@ module.exports = async function synchronization(filename, url, username, passwor
     if (certificatesToDeleteFromServer.length > 0) {
       const certificateIds = certificatesToDeleteFromServer.map(cert => cert.id);
       console.log(JSON.stringify(certificateIds).red);
-      const pendingDeletion = certificateIds.forEach(async id =>
+      const pendingDeletions = certificateIds.forEach(async id =>
         await kong.certificates.removeCertificate(id).catch(err => console.log(`error removing Certificate (${id})`, err.message.data))
       );
-      await pendingDeletion;
+      await Promise.all(pendingDeletions);
       console.log('Extra Certificates on server have been deleted'.blue);
     }
 
@@ -144,12 +144,13 @@ module.exports = async function synchronization(filename, url, username, passwor
 
     // Upload new SNIs
     console.log('Updating SNIs'.bold);
-    diskSNIs.map(async sni =>
+    const pendingSNICreations = diskSNIs.map(async sni =>
       await kong.snis.createOrUpdateSNI(sni).catch(err => {
         if (err.statusCode !== 409) console.log(`Error adding SNI`, err.message);
       })
     );
     console.log('SNI updates complete'.green);
+    await Promise.all(pendingSNICreations);
     await delay(waitTimeInMs);
 
     // At this point all extra server entities have been removed, now we update all entities from the disk into the server
