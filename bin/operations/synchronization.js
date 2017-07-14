@@ -162,7 +162,21 @@ module.exports = async function synchronization(filename, url, username, passwor
     await delay(waitTimeInMs);
 
     console.log('Updating Plugins'.bold);
-    const pendingPluginCreations = diskPlugins.map(async eachPlugin => await kong.plugins.createOrUpdatePlugin(eachPlugin));
+    const pendingPluginCreations = diskPlugins.map(async eachPlugin => {
+      if (eachPlugin.api_id) {
+        // this is a plugin that applies to a specific API
+        // check whether the API exists before applying the plugin
+        const apiInformation = await kong.apis.apiDetails(eachPlugin.api_id).catch(() => undefined);
+        if (apiInformation) {
+          return await kong.plugins.createOrUpdatePlugin(eachPlugin)
+        } else {
+          console.log(`WARNING: Plugin ${eachPlugin.name} points to an API ID ${eachPlugin.api_id} that does not exist`.grey);
+          return Promise.resolve(0);
+        }
+      } else {
+        return await kong.plugins.createOrUpdatePlugin(eachPlugin)
+      }
+    });
     await Promise.all(pendingPluginCreations);
     console.log('Plugin updates complete'.green);
 
