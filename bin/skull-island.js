@@ -9,6 +9,9 @@ const backup = require('./operations/backup');
 const teardown = require('./operations/teardown');
 const synchronization = require('./operations/synchronization');
 
+// ignore SSL certificate warnings
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 function checkValidFlagsAndFailFast(url, username, password) {
     if (!url) {
         console.log('Please specify the url (eg. -l http://127.0.0.1:8001)'.yellow);
