@@ -96,7 +96,7 @@ module.exports = async function synchronization(filename, url, username, passwor
     if (snisToDeleteFromServer.length > 0) {
       const sniNames = snisToDeleteFromServer.map(sni => sni.name);
       console.log(JSON.stringify(sniNames).red);
-      const pendingDeletions = sniNames.forEach(async name =>
+      const pendingDeletions = sniNames.map(async name =>
         await kong.snis.removeSNI(name).catch(err => console.log(`error removing SNI (${name})`, err.message.data))
       );
       await Promise.all(pendingDeletions);
@@ -108,7 +108,7 @@ module.exports = async function synchronization(filename, url, username, passwor
     if (certificatesToDeleteFromServer.length > 0) {
       const certificateIds = certificatesToDeleteFromServer.map(cert => cert.id);
       console.log(JSON.stringify(certificateIds).red);
-      const pendingDeletions = certificateIds.forEach(async id =>
+      const pendingDeletions = certificateIds.map(async id =>
         await kong.certificates.removeCertificate(id).catch(err => console.log(`error removing Certificate (${id})`, err.message.data))
       );
       await Promise.all(pendingDeletions);
