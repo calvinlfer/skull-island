@@ -47,13 +47,13 @@ module.exports = async function backup(filename, url, username, password) {
       snis
     };
 
-    // TODO: implement the backup process for SNIs
-
     fs.writeFileSync(adjustedFileName, JSON.stringify(results, null, 4));
-    console.log(`Backup data has been written to ${adjustedFileName}`.green)
-  } catch (e) {
-    console.log(e.message.red)
-  } finally {
+    console.log(`Backup data has been written to ${adjustedFileName}`.green);
     console.log(' '.reset);
+  } catch (e) {
+    console.log(e.message.red);
+    console.log(' '.reset);
+    // non-zero exit code for Unix
+    process.exit(1);
   }
 };

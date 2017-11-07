@@ -209,10 +209,12 @@ module.exports = async function synchronization(filename, url, username, passwor
 
     console.log('Consumer and Credentials updates complete'.green);
     console.log('Synchronization process complete'.green.bold);
+    console.log(' '.reset);
   } catch (e) {
     console.log(e);
     console.log(e.message.red);
-  } finally {
     console.log(' '.reset);
+    // non-zero exit code for Unix
+    process.exit(1);
   }
 };

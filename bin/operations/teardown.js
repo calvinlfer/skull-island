@@ -33,9 +33,11 @@ module.exports = async function teardown(url, username, password) {
     const certificateIds = certificates.map(certificate => certificate.id);
     certificateIds.map(async id => await kong.certificates.removeCertificate(id).catch(err => console.log(err.message.grey)));
     console.log('Certificate deletion complete'.red.reset);
-  } catch (e) {
-    console.log(e.message.red)
-  } finally {
     console.log('Teardown process complete'.reset);
+  } catch (e) {
+    console.log(e.message.red);
+    console.log('Teardown process complete'.reset);
+    // non-zero exit code for Unix
+    process.exit(1);
   }
 };

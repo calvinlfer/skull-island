@@ -179,6 +179,9 @@ encoded.
 synchronization of these certificates will be skipped and a warning will
 be printed.
 
+### Release process
+The release process uses the `release-me` NPM module
+
 ### Notes
 To my understanding, the dependency graph can be visualized like this:
 
